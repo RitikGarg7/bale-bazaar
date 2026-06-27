@@ -21,6 +21,15 @@ import {
 } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
+const apiKey = import.meta.env.VITE_FIREBASE_API_KEY;
+
+if (!apiKey || apiKey === "your_api_key") {
+  console.warn(
+    "⚠️  Firebase env vars not set. Copy .env.example → .env and fill in your Firebase config.\n" +
+    "   On Vercel: add VITE_FIREBASE_* vars in Project → Settings → Environment Variables."
+  );
+}
+
 const firebaseConfig = {
   apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain:        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -30,8 +39,7 @@ const firebaseConfig = {
   appId:             import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-const app = initializeApp(firebaseConfig);
-
+const app    = initializeApp(firebaseConfig);
 export const auth    = getAuth(app);
 export const storage = getStorage(app);
 const _db            = getFirestore(app);

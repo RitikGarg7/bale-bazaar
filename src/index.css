@@ -8,14 +8,20 @@
 
 html {
   height: 100%;
+  /* Prevent rubber-band scroll showing white on iOS */
+  background: #1B3A5C;
 }
 
 body {
   width: 100%;
   min-height: 100%;
   background: #F5F4F0;
+  /* Prevent iOS/Android from inflating font sizes */
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  /* Safe area insets for notched phones */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 #root {

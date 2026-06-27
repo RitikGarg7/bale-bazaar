@@ -1,5 +1,5 @@
 // Shared design system — tokens + primitive components
-// Bale Bazaar brand: navy + amber, warm industrial feel
+// Bale Bazaar: navy + amber, warm industrial feel
 
 export const C = {
   navy:       "#1B3A5C",
@@ -29,11 +29,23 @@ export const G = `
   ::-webkit-scrollbar{width:3px}
   ::-webkit-scrollbar-thumb{background:${C.border};border-radius:2px}
   @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 `;
 
+// Mobile-first shell — max 430px centered, like mandi-khata
 export function Shell({ children, style }) {
   return (
-    <div style={{ maxWidth: 430, margin: "0 auto", minHeight: "100vh", background: C.bg, position: "relative", overflow: "hidden", ...style }}>
+    <div style={{
+      maxWidth: 430,
+      margin: "0 auto",
+      minHeight: "100vh",
+      minHeight: "100dvh", // dynamic viewport height (handles mobile browser chrome)
+      background: C.bg,
+      position: "relative",
+      overflowX: "hidden",
+      animation: "fadeIn 0.18s ease-out",
+      ...style,
+    }}>
       <style>{G}</style>
       {children}
     </div>
@@ -43,11 +55,31 @@ export function Shell({ children, style }) {
 export function TopBar({ title, onBack, right, bg = C.white }) {
   const isLight = bg === C.white || bg === C.bg;
   return (
-    <div style={{ background: bg, borderBottom: isLight ? `1px solid ${C.border}` : "none", padding: "0 16px", height: 56, display: "flex", alignItems: "center", gap: 12, position: "sticky", top: 0, zIndex: 10 }}>
+    <div style={{
+      background: bg,
+      borderBottom: isLight ? `1px solid ${C.border}` : "none",
+      padding: "0 16px",
+      height: 56,
+      display: "flex",
+      alignItems: "center",
+      gap: 12,
+      position: "sticky",
+      top: 0,
+      zIndex: 10,
+      flexShrink: 0,
+    }}>
       {onBack && (
-        <button onClick={onBack} style={{ background: "none", border: "none", fontSize: 20, color: isLight ? C.inkMid : C.white, padding: "8px 8px 8px 0" }}>←</button>
+        <button onClick={onBack} style={{
+          background: "none", border: "none", fontSize: 22,
+          color: isLight ? C.inkMid : C.white,
+          padding: "8px 12px 8px 0",
+          lineHeight: 1,
+        }}>←</button>
       )}
-      <span style={{ fontFamily: "'Baloo 2'", fontWeight: 700, fontSize: 18, color: isLight ? C.ink : C.white, flex: 1 }}>{title}</span>
+      <span style={{
+        fontFamily: "'Baloo 2'", fontWeight: 700, fontSize: 18,
+        color: isLight ? C.ink : C.white, flex: 1,
+      }}>{title}</span>
       {right}
     </div>
   );
@@ -55,7 +87,13 @@ export function TopBar({ title, onBack, right, bg = C.white }) {
 
 export function Card({ children, style, onClick }) {
   return (
-    <div onClick={onClick} style={{ background: C.white, borderRadius: 16, padding: 16, border: `1px solid ${C.border}`, cursor: onClick ? "pointer" : "default", ...style }}>
+    <div onClick={onClick} style={{
+      background: C.white, borderRadius: 16, padding: 16,
+      border: `1px solid ${C.border}`,
+      cursor: onClick ? "pointer" : "default",
+      transition: onClick ? "box-shadow 0.15s" : "none",
+      ...style,
+    }}>
       {children}
     </div>
   );
@@ -71,8 +109,14 @@ export function Btn({ children, onClick, variant = "primary", style, disabled, t
     ghost:     { background: "transparent", color: C.inkMid, border: "none" },
   };
   return (
-    <button type={type} onClick={onClick} disabled={disabled}
-      style={{ ...variants[variant], borderRadius: 12, padding: "13px 20px", fontSize: 15, fontWeight: 600, width: "100%", opacity: disabled ? 0.45 : 1, fontFamily: "'Baloo 2'", ...style }}>
+    <button type={type} onClick={onClick} disabled={disabled} style={{
+      ...variants[variant],
+      borderRadius: 12, padding: "13px 20px",
+      fontSize: 15, fontWeight: 600, width: "100%",
+      opacity: disabled ? 0.45 : 1,
+      fontFamily: "'Baloo 2'",
+      ...style,
+    }}>
       {children}
     </button>
   );
@@ -82,20 +126,49 @@ export function Field({ label, value, onChange, type = "text", placeholder, pref
   return (
     <div style={{ marginBottom: 14 }}>
       {label && (
-        <label style={{ fontSize: 11, fontWeight: 700, color: C.inkLight, textTransform: "uppercase", letterSpacing: 0.6, display: "block", marginBottom: 5 }}>
+        <label style={{
+          fontSize: 11, fontWeight: 700, color: C.inkLight,
+          textTransform: "uppercase", letterSpacing: 0.6,
+          display: "block", marginBottom: 5,
+        }}>
           {label}{required && <span style={{ color: C.red }}> *</span>}
         </label>
       )}
       <div style={{ position: "relative" }}>
-        {prefix && <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: C.inkLight, fontSize: 14, fontWeight: 600, pointerEvents: "none" }}>{prefix}</span>}
-        {rows ? (
-          <textarea value={value} onChange={e => onChange && onChange(e.target.value)} placeholder={placeholder} readOnly={readOnly} rows={rows}
-            style={{ width: "100%", padding: "12px 16px", borderRadius: 10, border: `1.5px solid ${C.border}`, background: readOnly ? C.bg : C.white, fontSize: 14, color: C.ink, resize: "none" }} />
-        ) : (
-          <input type={type} value={value} onChange={e => onChange && onChange(e.target.value)} placeholder={placeholder} readOnly={readOnly}
-            style={{ width: "100%", padding: `12px ${suffix ? "52px" : "16px"} 12px ${prefix ? "36px" : "16px"}`, borderRadius: 10, border: `1.5px solid ${C.border}`, background: readOnly ? C.bg : C.white, fontSize: 14, color: C.ink }} />
+        {prefix && (
+          <span style={{
+            position: "absolute", left: 12, top: "50%",
+            transform: "translateY(-50%)", color: C.inkLight,
+            fontSize: 14, fontWeight: 600, pointerEvents: "none",
+          }}>{prefix}</span>
         )}
-        {suffix && <span style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", color: C.inkLight, fontSize: 12 }}>{suffix}</span>}
+        {rows ? (
+          <textarea value={value} onChange={e => onChange && onChange(e.target.value)}
+            placeholder={placeholder} readOnly={readOnly} rows={rows}
+            style={{
+              width: "100%", padding: "12px 16px", borderRadius: 10,
+              border: `1.5px solid ${C.border}`,
+              background: readOnly ? C.bg : C.white,
+              fontSize: 14, color: C.ink, resize: "none",
+            }} />
+        ) : (
+          <input type={type} value={value}
+            onChange={e => onChange && onChange(e.target.value)}
+            placeholder={placeholder} readOnly={readOnly}
+            style={{
+              width: "100%",
+              padding: `12px ${suffix ? "52px" : "16px"} 12px ${prefix ? "36px" : "16px"}`,
+              borderRadius: 10, border: `1.5px solid ${C.border}`,
+              background: readOnly ? C.bg : C.white,
+              fontSize: 14, color: C.ink,
+            }} />
+        )}
+        {suffix && (
+          <span style={{
+            position: "absolute", right: 12, top: "50%",
+            transform: "translateY(-50%)", color: C.inkLight, fontSize: 12,
+          }}>{suffix}</span>
+        )}
       </div>
       {hint && <p style={{ fontSize: 11, color: C.inkLight, marginTop: 3 }}>{hint}</p>}
     </div>
@@ -103,7 +176,12 @@ export function Field({ label, value, onChange, type = "text", placeholder, pref
 }
 
 export function Tag({ children, color = C.navy, bg = C.navyLight }) {
-  return <span style={{ display: "inline-block", padding: "2px 9px", borderRadius: 20, fontSize: 11, fontWeight: 700, color, background: bg }}>{children}</span>;
+  return (
+    <span style={{
+      display: "inline-block", padding: "2px 9px", borderRadius: 20,
+      fontSize: 11, fontWeight: 700, color, background: bg,
+    }}>{children}</span>
+  );
 }
 
 export function Divider({ label }) {
@@ -116,21 +194,44 @@ export function Divider({ label }) {
   );
 }
 
+// Bottom nav — fixed, respects safe area on iPhone
 export function BottomNav({ active, nav }) {
   const items = [
     ["home",      "🏠", "Home"],
-    ["inventory", "📦", "Inventory"],
+    ["inventory", "📦", "Stock"],
     ["catalog",   "📸", "Catalog"],
     ["parties",   "🤝", "Parties"],
   ];
   return (
-    <div style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 430, background: C.white, borderTop: `1px solid ${C.border}`, display: "flex", zIndex: 100, paddingBottom: 6 }}>
+    <div style={{
+      position: "fixed",
+      bottom: 0,
+      left: "50%",
+      transform: "translateX(-50%)",
+      width: "100%",
+      maxWidth: 430,
+      background: C.white,
+      borderTop: `1px solid ${C.border}`,
+      display: "flex",
+      zIndex: 100,
+      paddingBottom: "max(6px, env(safe-area-inset-bottom))",
+    }}>
       {items.map(([id, icon, label]) => (
-        <button key={id} onClick={() => nav(id)}
-          style={{ flex: 1, background: "none", border: "none", padding: "10px 0 4px", display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-          <span style={{ fontSize: 21 }}>{icon}</span>
-          <span style={{ fontSize: 10, fontWeight: active === id ? 700 : 400, color: active === id ? C.amber : C.inkLight }}>{label}</span>
-          {active === id && <div style={{ width: 4, height: 4, borderRadius: "50%", background: C.amber }} />}
+        <button key={id} onClick={() => nav(id)} style={{
+          flex: 1, background: "none", border: "none",
+          padding: "10px 0 4px",
+          display: "flex", flexDirection: "column",
+          alignItems: "center", gap: 2,
+        }}>
+          <span style={{ fontSize: 22 }}>{icon}</span>
+          <span style={{
+            fontSize: 10,
+            fontWeight: active === id ? 700 : 400,
+            color: active === id ? C.amber : C.inkLight,
+          }}>{label}</span>
+          {active === id && (
+            <div style={{ width: 4, height: 4, borderRadius: "50%", background: C.amber }} />
+          )}
         </button>
       ))}
     </div>
@@ -140,17 +241,42 @@ export function BottomNav({ active, nav }) {
 export function Spinner() {
   return (
     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: 120 }}>
-      <div style={{ width: 32, height: 32, borderRadius: "50%", border: `3px solid ${C.border}`, borderTopColor: C.navy, animation: "spin 0.8s linear infinite" }} />
+      <div style={{
+        width: 32, height: 32, borderRadius: "50%",
+        border: `3px solid ${C.border}`,
+        borderTopColor: C.navy,
+        animation: "spin 0.8s linear infinite",
+      }} />
     </div>
   );
 }
 
 export function EmptyState({ icon, title, subtitle }) {
   return (
-    <div style={{ textAlign: "center", padding: "48px 24px", color: C.inkLight }}>
-      <div style={{ fontSize: 48, marginBottom: 12 }}>{icon}</div>
-      <p style={{ fontWeight: 700, fontSize: 16, color: C.inkMid, marginBottom: 6 }}>{title}</p>
-      {subtitle && <p style={{ fontSize: 13 }}>{subtitle}</p>}
+    <div style={{ textAlign: "center", padding: "64px 24px", color: C.inkLight }}>
+      <div style={{ fontSize: 52, marginBottom: 14 }}>{icon}</div>
+      <p style={{ fontWeight: 700, fontSize: 16, color: C.inkMid, marginBottom: 8 }}>{title}</p>
+      {subtitle && <p style={{ fontSize: 13, lineHeight: 1.6 }}>{subtitle}</p>}
     </div>
+  );
+}
+
+export function FAB({ onClick, color = C.navy, children = "+" }) {
+  return (
+    <button onClick={onClick} style={{
+      position: "fixed",
+      bottom: `calc(70px + max(6px, env(safe-area-inset-bottom)))`,
+      right: 20,
+      background: color,
+      color: "#fff",
+      border: "none",
+      borderRadius: "50%",
+      width: 56, height: 56,
+      fontSize: 28, fontWeight: 300,
+      boxShadow: "0 4px 20px rgba(0,0,0,0.25)",
+      cursor: "pointer",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      zIndex: 50,
+    }}>{children}</button>
   );
 }
