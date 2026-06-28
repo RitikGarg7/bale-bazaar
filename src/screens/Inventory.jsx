@@ -2,24 +2,88 @@ import { useState, useEffect } from "react";
 import { useApp } from "../context/AppContext";
 import { Shell, TopBar, BottomNav, Card, FAB, Spinner, EmptyState, C, Tag } from "../components/ui";
 
-const COUNTRIES = ["All", "Korea", "China", "USA", "UK", "Canada", "Australia", "Other"];
-
-const CATEGORIES = ["Mix", "Shirts", "T-Shirts", "Jeans", "Trousers", "Jackets", "Kids", "Ladies", "Sweaters", "Shoes", "Other"];
+const COUNTRIES  = ["All", "Korea", "China", "USA", "UK", "Canada", "Australia", "Other"];
+const CATEGORIES = ["Mix", "Shirts", "T-Shirts", "Jeans", "Trousers", "Jackets", "Kids", "Ladies", "Sweaters", "Shoes"];
 const QUALITIES  = ["A", "B", "C", "Mix"];
 
+function gradeColor(q) {
+  if (q === "A") return { c: C.green,   bg: C.greenLight };
+  if (q === "B") return { c: C.amber,   bg: C.amberLight };
+  if (q === "C") return { c: C.red,     bg: C.redLight   };
+  return              { c: C.inkLight, bg: C.bg          };
+}
+
+function Stat({ label, value }) {
+  return (
+    <div>
+      <div style={{ fontSize: 10, color: C.inkLight, fontWeight: 600, textTransform: "uppercase" }}>{label}</div>
+      <div style={{ fontSize: 14, fontWeight: 700, color: C.inkMid }}>{value}</div>
+    </div>
+  );
+}
+
+function Label({ children }) {
+  return (
+    <p style={{ fontSize: 11, fontWeight: 700, color: C.inkLight, textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 8 }}>
+      {children}
+    </p>
+  );
+}
+
+// ── Bale Card ─────────────────────────────────────────────────────────────────
+function BaleCard({ bale, onTap }) {
+  const statusColor = bale.status === "sold"
+    ? { bg: C.greenLight, color: C.green, label: "Sold" }
+    : { bg: C.navyLight,  color: C.navy,  label: "In Stock" };
+
+  return (
+    <Card onClick={onTap} style={{ marginBottom: 8, padding: "12px 14px" }}>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
+            <span style={{ fontWeight: 700, fontSize: 14, color: C.ink }}>{bale.category}</span>
+            <Tag color={gradeColor(bale.quality).c} bg={gradeColor(bale.quality).bg}>Grade {bale.quality}</Tag>
+            <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 20, background: statusColor.bg, color: statusColor.color }}>
+              {statusColor.label}
+            </span>
+          </div>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: bale.notes ? 6 : 0 }}>
+            <Stat label="Bales"     value={bale.num_bales} />
+            <Stat label="Wt/Bale"  value={`${bale.weight_kg} kg`} />
+            <Stat label="Total Wt" value={`${Number(bale.weight_kg) * Number(bale.num_bales || 1)} kg`} />
+            {bale.price_per_kg && <Stat label="₹/kg" value={`₹${bale.price_per_kg}`} />}
+          </div>
+          {bale.date && (
+            <div style={{ fontSize: 11, color: C.inkLight, marginTop: 4 }}>
+              📅 {new Date(bale.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+            </div>
+          )}
+          {bale.notes && <p style={{ fontSize: 12, color: C.inkLight, marginTop: 4, fontStyle: "italic" }}>{bale.notes}</p>}
+        </div>
+        <span style={{ color: C.border, fontSize: 20 }}>›</span>
+      </div>
+    </Card>
+  );
+}
+
+// ── Stock List ────────────────────────────────────────────────────────────────
 export default function Inventory({ nav }) {
   const { inventory, loadAll, loading } = useApp();
-  const [filter,    setFilter]    = useState("All");
-  const [showForm,  setShowForm]  = useState(false);
-  const [editItem,  setEditItem]  = useState(null);
+  const [filter,   setFilter]   = useState("All");
+  const [showForm, setShowForm] = useState(false);
+  const [editItem, setEditItem] = useState(null);
 
   useEffect(() => { loadAll(); }, [loadAll]);
 
-  // Group bales by brand, filtered by country
   const filtered = filter === "All" ? inventory : inventory.filter(b => b.country === filter);
 
-  // Group by brand
-  const byBrand = filtered.reduce((acc, bale) => {
+  // Sort by date desc, then group by brand
+  const sorted = [...filtered].sort((a, b) => {
+    const da = a.date || ""; const db = b.date || "";
+    return db.localeCompare(da);
+  });
+
+  const byBrand = sorted.reduce((acc, bale) => {
     const key = `${bale.brand}||${bale.country}`;
     if (!acc[key]) acc[key] = { brand: bale.brand, country: bale.country, bales: [] };
     acc[key].bales.push(bale);
@@ -46,45 +110,35 @@ export default function Inventory({ nav }) {
         display: "flex", gap: 8, padding: "12px 16px",
         overflowX: "auto", background: C.white,
         borderBottom: `1px solid ${C.border}`,
-        WebkitOverflowScrolling: "touch",
-        scrollbarWidth: "none",
+        WebkitOverflowScrolling: "touch", scrollbarWidth: "none",
       }}>
         {COUNTRIES.map(c => (
           <button key={c} onClick={() => setFilter(c)} style={{
-            flexShrink: 0,
-            padding: "6px 14px",
-            borderRadius: 20,
-            border: "none",
-            fontSize: 13, fontWeight: 600,
+            flexShrink: 0, padding: "6px 14px", borderRadius: 20, border: "none",
+            fontSize: 13, fontWeight: 600, cursor: "pointer",
             background: filter === c ? C.navy : C.bg,
             color:      filter === c ? C.white : C.inkMid,
-            cursor: "pointer",
-            transition: "all 0.15s",
           }}>{c}</button>
         ))}
       </div>
 
       <div style={{ padding: "14px 16px 110px" }}>
         {loading ? <Spinner /> : Object.keys(byBrand).length === 0 ? (
-          <EmptyState
-            icon="📦"
-            title="Koi Stock Nahi Mila"
-            subtitle='Neeche "+" dabao aur pehla bale add karo'
-          />
+          <EmptyState icon="📦" title="Koi Stock Nahi Mila" subtitle='Neeche "+" dabao aur pehla bale add karo' />
         ) : (
           Object.values(byBrand).map(({ brand, country, bales }) => {
-            const totalBales  = bales.length;
-            const totalWeight = bales.reduce((s, b) => s + (Number(b.weight_kg) * Number(b.num_bales || 1)), 0);
-            const inStock     = bales.filter(b => b.status !== "sold");
+            const totalBalesCount = bales.reduce((s, b) => s + (Number(b.num_bales) || 0), 0);
+            const totalWeight     = bales.reduce((s, b) => s + (Number(b.weight_kg) * Number(b.num_bales || 1)), 0);
+            const inStockCount    = bales.filter(b => b.status !== "sold").reduce((s, b) => s + (Number(b.num_bales) || 0), 0);
             return (
-              <div key={`${brand}||${country}`} style={{ marginBottom: 16 }}>
-                {/* Brand header */}
+              <div key={`${brand}||${country}`} style={{ marginBottom: 20 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
                   <span style={{ fontFamily: "'Baloo 2'", fontWeight: 800, fontSize: 16, color: C.ink }}>{brand}</span>
                   <Tag color={C.navyDark} bg={C.navyLight}>{country}</Tag>
-                  <span style={{ marginLeft: "auto", fontSize: 12, color: C.inkLight }}>{inStock.length} lots · {totalWeight} kg</span>
+                  <span style={{ marginLeft: "auto", fontSize: 12, color: C.inkLight }}>
+                    {inStockCount} bales · {totalWeight} kg
+                  </span>
                 </div>
-
                 {bales.map(bale => (
                   <BaleCard key={bale.id} bale={bale} onTap={() => setEditItem(bale)} />
                 ))}
@@ -100,72 +154,31 @@ export default function Inventory({ nav }) {
   );
 }
 
-function BaleCard({ bale, onTap }) {
-  const statusColor = bale.status === "sold"
-    ? { bg: "#F0FDF4", color: C.green, label: "Sold" }
-    : { bg: C.navyLight, color: C.navy, label: "In Stock" };
-
-  return (
-    <Card onClick={onTap} style={{ marginBottom: 8, padding: "12px 14px" }}>
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
-            <span style={{ fontWeight: 700, fontSize: 14, color: C.ink }}>{bale.category}</span>
-            <Tag color={gradeColor(bale.quality).c} bg={gradeColor(bale.quality).bg}>Grade {bale.quality}</Tag>
-            <span style={{
-              fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 20,
-              background: statusColor.bg, color: statusColor.color,
-            }}>{statusColor.label}</span>
-          </div>
-          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-            <Stat label="Bales"      value={bale.num_bales} />
-            <Stat label="Wt/Bale"   value={`${bale.weight_kg} kg`} />
-            <Stat label="Total Wt"  value={`${Number(bale.weight_kg) * Number(bale.num_bales || 1)} kg`} />
-            {bale.price_per_kg && <Stat label="₹/kg" value={`₹${bale.price_per_kg}`} />}
-          </div>
-          {bale.notes && <p style={{ fontSize: 12, color: C.inkLight, marginTop: 6, fontStyle: "italic" }}>{bale.notes}</p>}
-        </div>
-        <span style={{ color: C.border, fontSize: 20 }}>›</span>
-      </div>
-    </Card>
-  );
-}
-
-function Stat({ label, value }) {
-  return (
-    <div>
-      <div style={{ fontSize: 10, color: C.inkLight, fontWeight: 600, textTransform: "uppercase" }}>{label}</div>
-      <div style={{ fontSize: 14, fontWeight: 700, color: C.inkMid }}>{value}</div>
-    </div>
-  );
-}
-
-function gradeColor(q) {
-  if (q === "A") return { c: C.green,    bg: C.greenLight };
-  if (q === "B") return { c: C.amber,    bg: C.amberLight };
-  if (q === "C") return { c: C.red,      bg: C.redLight   };
-  return              { c: C.inkLight, bg: C.bg          };
-}
-
 // ── Add / Edit Bale Form ──────────────────────────────────────────────────────
-function BaleForm({ item, onDone, onBack, nav }) {
+function BaleForm({ item, onDone, onBack }) {
   const { saveBale, deleteBale, inventory } = useApp();
   const isEdit = !!item;
 
-  const [country,      setCountry]      = useState(item?.country      || "Korea");
-  const [brand,        setBrand]        = useState(item?.brand        || "");
-  const [brandInput,   setBrandInput]   = useState(item?.brand        || "");
-  const [category,     setCategory]     = useState(item?.category     || "Mix");
-  const [quality,      setQuality]      = useState(item?.quality      || "A");
-  const [weightKg,     setWeightKg]     = useState(item?.weight_kg    || "");
-  const [numBales,     setNumBales]     = useState(item?.num_bales    || "");
-  const [pricePerKg,   setPricePerKg]   = useState(item?.price_per_kg || "");
-  const [status,       setStatus]       = useState(item?.status       || "in_stock");
-  const [notes,        setNotes]        = useState(item?.notes        || "");
-  const [busy,         setBusy]         = useState(false);
-  const [showBrands,   setShowBrands]   = useState(false);
+  // detect if saved category is custom (not in our list)
+  const savedCat     = item?.category || "Mix";
+  const isCustomSaved = !CATEGORIES.includes(savedCat);
 
-  // Existing brands for selected country (autocomplete)
+  const [country,        setCountry]        = useState(item?.country      || "Korea");
+  const [brandInput,     setBrandInput]     = useState(item?.brand        || "");
+  const [category,       setCategory]       = useState(isCustomSaved ? "custom" : savedCat);
+  const [customCategory, setCustomCategory] = useState(isCustomSaved ? savedCat : "");
+  const [quality,        setQuality]        = useState(item?.quality      || "A");
+  const [weightKg,       setWeightKg]       = useState(item?.weight_kg    || "");
+  const [numBales,       setNumBales]       = useState(item?.num_bales    || "");
+  const [pricePerKg,     setPricePerKg]     = useState(item?.price_per_kg || "");
+  const [date,           setDate]           = useState(item?.date         || new Date().toISOString().slice(0, 10));
+  const [status,         setStatus]         = useState(item?.status       || "in_stock");
+  const [notes,          setNotes]          = useState(item?.notes        || "");
+  const [busy,           setBusy]           = useState(false);
+  const [showBrands,     setShowBrands]     = useState(false);
+
+  const finalCategory = category === "custom" ? customCategory.trim() : category;
+
   const existingBrands = [...new Set(
     inventory.filter(b => b.country === country).map(b => b.brand)
   )].filter(Boolean);
@@ -179,6 +192,7 @@ function BaleForm({ item, onDone, onBack, nav }) {
 
   const handleSave = async () => {
     if (!brandInput.trim())  return alert("Brand ka naam likhein");
+    if (!finalCategory)      return alert("Category likhein");
     if (!weightKg)           return alert("Weight likhein");
     if (!numBales)           return alert("Bales ki ginti likhein");
 
@@ -187,11 +201,12 @@ function BaleForm({ item, onDone, onBack, nav }) {
       await saveBale({
         country,
         brand:        brandInput.trim().toUpperCase(),
-        category,
+        category:     finalCategory,
         quality,
         weight_kg:    Number(weightKg),
         num_bales:    Number(numBales),
         price_per_kg: pricePerKg ? Number(pricePerKg) : null,
+        date,
         status,
         notes: notes.trim(),
       }, item?.id || null);
@@ -223,10 +238,7 @@ function BaleForm({ item, onDone, onBack, nav }) {
         bg={C.navy}
         onBack={onBack}
         right={isEdit && (
-          <button onClick={handleDelete} style={{
-            background: "none", border: "none", color: "#ff6b6b",
-            fontSize: 22, cursor: "pointer", padding: "8px",
-          }}>🗑</button>
+          <button onClick={handleDelete} style={{ background: "none", border: "none", color: "#ff6b6b", fontSize: 22, cursor: "pointer", padding: "8px" }}>🗑</button>
         )}
       />
 
@@ -269,50 +281,78 @@ function BaleForm({ item, onDone, onBack, nav }) {
             }}>
               {filteredBrands.map(b => (
                 <div key={b} onClick={() => { setBrandInput(b); setShowBrands(false); }}
-                  style={{
-                    padding: "12px 16px", fontSize: 14, fontWeight: 600,
-                    cursor: "pointer", color: C.ink,
-                    borderBottom: `1px solid ${C.border}`,
-                  }}>{b}</div>
+                  style={{ padding: "12px 16px", fontSize: 14, fontWeight: 600, cursor: "pointer", color: C.ink, borderBottom: `1px solid ${C.border}` }}>
+                  {b}
+                </div>
               ))}
             </div>
           )}
         </div>
 
-        {/* Category */}
+        {/* Category chips + custom input */}
         <Label>Category *</Label>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: category === "custom" ? 8 : 16 }}>
           {CATEGORIES.map(c => (
-            <button key={c} onClick={() => setCategory(c)}
-              style={{
-                padding: "7px 14px", borderRadius: 20, border: "none", fontSize: 13,
-                fontWeight: 600, cursor: "pointer",
-                background: category === c ? C.amber : C.bg,
-                color:      category === c ? C.white : C.inkMid,
-              }}>{c}</button>
+            <button key={c} onClick={() => setCategory(c)} style={{
+              padding: "7px 14px", borderRadius: 20, border: "none", fontSize: 13,
+              fontWeight: 600, cursor: "pointer",
+              background: category === c ? C.amber : C.bg,
+              color:      category === c ? C.white : C.inkMid,
+            }}>{c}</button>
           ))}
+          <button onClick={() => setCategory("custom")} style={{
+            padding: "7px 14px", borderRadius: 20, border: `1.5px dashed ${category === "custom" ? C.amber : C.border}`,
+            fontSize: 13, fontWeight: 600, cursor: "pointer",
+            background: category === "custom" ? C.amberLight : "transparent",
+            color:      category === "custom" ? C.amberDark : C.inkLight,
+          }}>+ Custom</button>
         </div>
+        {category === "custom" && (
+          <input
+            value={customCategory}
+            onChange={e => setCustomCategory(e.target.value)}
+            placeholder="Category likhein (e.g. Saris, Kurtas...)"
+            autoFocus
+            style={{
+              width: "100%", padding: "12px 16px", borderRadius: 10,
+              border: `1.5px solid ${C.amber}`, fontSize: 14,
+              color: C.ink, background: C.white, marginBottom: 16,
+            }}
+          />
+        )}
 
         {/* Quality */}
         <Label>Quality / Grade *</Label>
         <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
           {QUALITIES.map(q => (
-            <button key={q} onClick={() => setQuality(q)}
-              style={{
-                flex: 1, padding: "10px", borderRadius: 10, border: "none",
-                fontSize: 15, fontWeight: 800, cursor: "pointer",
-                background: quality === q ? gradeColor(q).c : C.bg,
-                color:      quality === q ? C.white : gradeColor(q).c,
-              }}>
+            <button key={q} onClick={() => setQuality(q)} style={{
+              flex: 1, padding: "10px", borderRadius: 10, border: "none",
+              fontSize: 14, fontWeight: 800, cursor: "pointer",
+              background: quality === q ? gradeColor(q).c : C.bg,
+              color:      quality === q ? C.white : gradeColor(q).c,
+            }}>
               {q === "Mix" ? "Mix" : `Grade ${q}`}
             </button>
           ))}
         </div>
 
+        {/* Date */}
+        <Label>Date *</Label>
+        <input
+          type="date"
+          value={date}
+          onChange={e => setDate(e.target.value)}
+          style={{
+            width: "100%", padding: "12px 16px", borderRadius: 10,
+            border: `1.5px solid ${C.border}`, fontSize: 14,
+            color: C.ink, background: C.white, marginBottom: 16,
+          }}
+        />
+
         {/* Weight + Bales */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
           <div>
-            <Label>Weight / Bale (kg) *</Label>
+            <Label>Wt / Bale (kg) *</Label>
             <input type="number" value={weightKg} onChange={e => setWeightKg(e.target.value)}
               placeholder="e.g. 45"
               style={{ width: "100%", padding: "12px 16px", borderRadius: 10, border: `1.5px solid ${C.border}`, fontSize: 15, fontWeight: 700 }} />
@@ -333,28 +373,24 @@ function BaleForm({ item, onDone, onBack, nav }) {
 
         {/* Live totals */}
         {totalWeight && (
-          <div style={{
-            background: C.navyLight, borderRadius: 12, padding: "12px 16px",
-            marginBottom: 16, display: "flex", gap: 24,
-          }}>
+          <div style={{ background: C.navyLight, borderRadius: 12, padding: "12px 16px", marginBottom: 16, display: "flex", gap: 24 }}>
             <Stat label="Total Weight" value={`${totalWeight} kg`} />
             {totalValue && <Stat label="Total Value" value={`₹${totalValue}`} />}
           </div>
         )}
 
-        {/* Status */}
+        {/* Status (edit only) */}
         {isEdit && (
           <>
             <Label>Status</Label>
             <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
               {["in_stock", "sold"].map(s => (
-                <button key={s} onClick={() => setStatus(s)}
-                  style={{
-                    flex: 1, padding: "10px", borderRadius: 10, border: "none",
-                    fontSize: 13, fontWeight: 700, cursor: "pointer",
-                    background: status === s ? (s === "sold" ? C.green : C.navy) : C.bg,
-                    color:      status === s ? C.white : C.inkMid,
-                  }}>
+                <button key={s} onClick={() => setStatus(s)} style={{
+                  flex: 1, padding: "10px", borderRadius: 10, border: "none",
+                  fontSize: 13, fontWeight: 700, cursor: "pointer",
+                  background: status === s ? (s === "sold" ? C.green : C.navy) : C.bg,
+                  color:      status === s ? C.white : C.inkMid,
+                }}>
                   {s === "sold" ? "✅ Sold" : "📦 In Stock"}
                 </button>
               ))}
@@ -367,35 +403,19 @@ function BaleForm({ item, onDone, onBack, nav }) {
         <textarea value={notes} onChange={e => setNotes(e.target.value)}
           placeholder="Koi khaas baat? e.g. mixed sizes, minor defects..."
           rows={3}
-          style={{
-            width: "100%", padding: "12px 16px", borderRadius: 10,
-            border: `1.5px solid ${C.border}`, fontSize: 14,
-            resize: "none", marginBottom: 20,
-          }} />
+          style={{ width: "100%", padding: "12px 16px", borderRadius: 10, border: `1.5px solid ${C.border}`, fontSize: 14, resize: "none", marginBottom: 20 }} />
 
         {/* Save */}
-        <button onClick={handleSave} disabled={busy}
-          style={{
-            width: "100%", padding: "15px", borderRadius: 12,
-            background: busy ? C.border : C.navy,
-            color: C.white, border: "none",
-            fontSize: 16, fontWeight: 800,
-            fontFamily: "'Baloo 2'",
-            cursor: busy ? "default" : "pointer",
-          }}>
+        <button onClick={handleSave} disabled={busy} style={{
+          width: "100%", padding: "15px", borderRadius: 12,
+          background: busy ? C.border : C.navy,
+          color: C.white, border: "none",
+          fontSize: 16, fontWeight: 800, fontFamily: "'Baloo 2'",
+          cursor: busy ? "default" : "pointer",
+        }}>
           {busy ? "Saving..." : isEdit ? "💾 Update Karein" : "✅ Bale Add Karein"}
         </button>
       </div>
     </Shell>
-  );
-}
-
-function Label({ children }) {
-  return (
-    <p style={{
-      fontSize: 11, fontWeight: 700, color: C.inkLight,
-      textTransform: "uppercase", letterSpacing: 0.6,
-      marginBottom: 8,
-    }}>{children}</p>
   );
 }
