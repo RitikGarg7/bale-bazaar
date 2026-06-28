@@ -4,7 +4,7 @@ import { Shell, TopBar, BottomNav, Card, C, Spinner } from "../components/ui";
 import { auth } from "../lib/firebase";
 import {
   getFirestore, collection, getDocs, addDoc,
-  query, orderBy, where, doc, setDoc, getDoc, serverTimestamp
+  query, orderBy, doc, setDoc, getDoc, serverTimestamp
 } from "firebase/firestore";
 
 function fmt(n)   { return "₹" + Math.abs(Number(n) || 0).toLocaleString("en-IN"); }
@@ -76,7 +76,7 @@ function StockPL({ onBack, nav }) {
     for (const bale of inventory) {
       if (!bale.id) continue;
       const ref  = collection(_db, "users", uid, "inventory", bale.id, "sales");
-      const snap = await getDocs(query(ref, orderBy("date", "desc")));
+      const snap = await getDocs(ref);
       salesMap[bale.id] = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     }
     setSales(salesMap);
@@ -218,23 +218,23 @@ function CashBook({ onBack, nav }) {
     const obSnap = await getDoc(obRef);
     setOpeningBal(obSnap.exists() ? (obSnap.data().opening || 0) : 0);
 
-    // Load manual entries
+    // Load manual entries — filter in JS to avoid composite index requirement
     const ref  = collection(_db, "users", uid, "cashbook_entries");
-    const q    = query(ref, where("mode", "==", mode), where("date", "==", date), orderBy("updatedAt", "asc"));
-    const snap = await getDocs(q);
-    const manual = snap.docs.map(d => ({ id: d.id, ...d.data(), source: "manual" }));
+    const snap = await getDocs(ref);
+    const manual = snap.docs
+      .map(d => ({ id: d.id, ...d.data(), source: "manual" }))
+      .filter(e => e.mode === mode && e.date === date);
 
     // Pull party ledger entries for today
     const partyEntries = [];
     const partiesSnap = await getDocs(collection(_db, "users", uid, "parties"));
     for (const pd of partiesSnap.docs) {
-      const lq = query(
-        collection(_db, "users", uid, "parties", pd.id, "ledger"),
-        where("date", "==", date)
+      const lsnap = await getDocs(
+        collection(_db, "users", uid, "parties", pd.id, "ledger")
       );
-      const lsnap = await getDocs(lq);
       for (const ld of lsnap.docs) {
         const data = ld.data();
+        if (data.date !== date) continue;
         if (data.type === "payment") {
           partyEntries.push({
             id: ld.id, type: "in", amount: data.amount,
