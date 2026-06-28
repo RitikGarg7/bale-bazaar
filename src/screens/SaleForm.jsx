@@ -61,7 +61,7 @@ export default function SaleForm({ bale, onDone, onBack }) {
       if (!uid) throw new Error("Not logged in");
 
       // 1. Save sale record under the bale
-      const { collection, doc, setDoc, serverTimestamp, getFirestore } = await import("firebase/firestore");
+      const { collection, doc, setDoc, addDoc, serverTimestamp, getFirestore } = await import("firebase/firestore");
       const { initializeApp, getApps } = await import("firebase/app");
       const _db = getFirestore();
 
