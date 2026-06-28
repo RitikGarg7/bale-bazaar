@@ -1,3 +1,4 @@
+import CashBookScreen from "./CashBook";
 import { useState, useEffect } from "react";
 import { useApp } from "../context/AppContext";
 import { Shell, TopBar, BottomNav, Card, C, Spinner } from "../components/ui";
@@ -27,7 +28,7 @@ export default function Reports({ nav }) {
   const [active, setActive] = useState("home"); // home | pl | cashbook | outstanding
 
   if (active === "pl")          return <StockPL      onBack={() => setActive("home")} nav={nav} />;
-  if (active === "cashbook")    return <CashBook     onBack={() => setActive("home")} nav={nav} />;
+  if (active === "cashbook")    return <CashBookScreen onBack={() => setActive("home")} nav={nav} />;
   if (active === "outstanding") return <Outstanding  onBack={() => setActive("home")} nav={nav} />;
 
   const cards = [
