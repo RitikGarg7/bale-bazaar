@@ -24,11 +24,9 @@ export default function Home({ nav }) {
   ];
 
   const modules = [
-    { id: "inventory", icon: "📦", label: "Stock / Inventory", desc: "Bale aur lot manage karein",          ready: true  },
-    { id: "parties",   icon: "🤝", label: "Parties",           desc: "Buyers aur contacts manage karein",   ready: true  },
-    { id: "broadcast", icon: "📣", label: "Broadcast",         desc: "Parties ko catalog bhejein",          ready: false },
-    { id: "reports",   icon: "📊", label: "Reports",           desc: "Stock in/out history",                ready: false },
-    { id: "ledger",    icon: "💰", label: "Ledger",            desc: "Payments aur outstanding",            ready: false },
+    { id: "inventory", icon: "📦", label: "Stock / Inventory", desc: "Bale aur lot manage karein",            ready: true },
+    { id: "parties",   icon: "🤝", label: "Parties",           desc: "Buyers, ledger aur payments",          ready: true },
+    { id: "reports",   icon: "📊", label: "Reports",           desc: "P&L, cash book, outstanding",          ready: true },
   ];
 
   return (

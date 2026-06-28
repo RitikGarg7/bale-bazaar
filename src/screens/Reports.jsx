@@ -224,8 +224,6 @@ function CashBook({ onBack, nav }) {
     const snap = await getDocs(q);
     const manual = snap.docs.map(d => ({ id: d.id, ...d.data(), source: "manual" }));
 
-    // Load sale entries (payments received today)
-    const { parties } = useApp();
     // Pull party ledger entries for today
     const partyEntries = [];
     const partiesSnap = await getDocs(collection(_db, "users", uid, "parties"));
