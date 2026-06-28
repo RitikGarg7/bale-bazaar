@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { auth, onAuthStateChanged } from "./lib/firebase";
 import { AppProvider, useApp } from "./context/AppContext";
 
-import Login    from "./screens/Login";
-import Home     from "./screens/Home";
-import { Inventory, Parties, Settings } from "./screens/Placeholders";
+import Login     from "./screens/Login";
+import Home      from "./screens/Home";
+import Inventory from "./screens/Inventory";
+import { Parties, Settings } from "./screens/Placeholders";
 
 function Router() {
   const { logout } = useApp();
@@ -59,10 +60,10 @@ function Router() {
   }
 
   const screens = {
-    home:      <Home     nav={nav} />,
+    home:      <Home      nav={nav} />,
     inventory: <Inventory nav={nav} />,
-    parties:   <Parties  nav={nav} />,
-    settings:  <Settings nav={nav} onLogout={handleLogout} />,
+    parties:   <Parties   nav={nav} />,
+    settings:  <Settings  nav={nav} onLogout={handleLogout} />,
   };
 
   return screens[screen] || <Home nav={nav} />;
