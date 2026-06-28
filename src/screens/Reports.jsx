@@ -1,3 +1,6 @@
+import SalesLedger from "./SalesLedger";
+import PurchaseLedger from "./PurchaseLedger";
+import ReceiptLedger from "./ReceiptLedger";
 import SupplierLedger from "./SupplierLedger";
 import CashBookScreen from "./CashBook";
 import { useState, useEffect } from "react";
@@ -32,12 +35,18 @@ export default function Reports({ nav }) {
   if (active === "cashbook")    return <CashBookScreen onBack={() => setActive("home")} nav={nav} />;
   if (active === "outstanding") return <Outstanding  onBack={() => setActive("home")} nav={nav} />;
   if (active === "suppliers")   return <SupplierLedger onBack={() => setActive("home")} nav={nav} />;
+  if (active === "sales")       return <SalesLedger    onBack={() => setActive("home")} />;
+  if (active === "purchases")   return <PurchaseLedger onBack={() => setActive("home")} />;
+  if (active === "receipts")    return <ReceiptLedger  onBack={() => setActive("home")} />;
 
   const cards = [
     { id: "pl",          icon: "📊", label: "Stock P&L",          desc: "Har lot ka profit/loss" },
     { id: "cashbook",    icon: "💵", label: "Cash & Bank Book",    desc: "Daily cash aur bank transactions" },
     { id: "outstanding", icon: "📋", label: "Party Outstandings",  desc: "Kaun kitna dega" },
     { id: "suppliers",   icon: "🏭", label: "Supplier Ledger",    desc: "Suppliers ka hisaab" },
+    { id: "sales",       icon: "📊", label: "Sales Ledger",       desc: "Saari sales ek jagah" },
+    { id: "purchases",   icon: "📦", label: "Purchase Ledger",    desc: "Saare purchases ek jagah" },
+    { id: "receipts",    icon: "💰", label: "Receipt Ledger",     desc: "Saari receipts ek jagah" },
   ];
 
   return (
