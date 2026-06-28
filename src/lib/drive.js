@@ -15,7 +15,7 @@ export async function getDriveToken() {
 
   return new Promise((resolve, reject) => {
     const client = window.google.accounts.oauth2.initTokenClient({
-      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || "498474421999-6eoj03p66na5homksk23gmqbggt4emi5.apps.googleusercontent.com",
       scope: DRIVE_SCOPE,
       callback: (response) => {
         if (response.error) return reject(response.error);
