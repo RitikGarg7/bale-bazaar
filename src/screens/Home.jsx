@@ -8,15 +8,19 @@ export default function Home({ nav }) {
   useEffect(() => { loadAll(); }, [loadAll]);
 
   const totalBales   = inventory.reduce((s, b) => s + (Number(b.num_bales) || 0), 0);
-  const inStockKg    = inventory.filter(b => b.status !== "sold").reduce((s, b) => s + (Number(b.weight_kg) || 0) * (Number(b.num_bales) || 1), 0);
+  const soldBales    = inventory.reduce((s, b) => s + (Number(b.sold_bales) || 0), 0);
+  const remainingBales = totalBales - soldBales;
+  const inStockKg    = inventory.reduce((s, b) => {
+    const rem = (Number(b.num_bales) || 0) - (Number(b.sold_bales) || 0);
+    return s + rem * (Number(b.weight_kg) || 0);
+  }, 0);
   const totalParties = parties.length;
-  const soldBales    = inventory.filter(b => b.status === "sold").reduce((s, b) => s + (Number(b.num_bales) || 0), 0);
 
   const stats = [
-    { label: "Total Bales",   value: totalBales,           icon: "📦", color: C.navy  },
+    { label: "Total Bales",   value: remainingBales + " / " + totalBales, icon: "📦", color: C.navy  },
     { label: "In Stock (kg)", value: inStockKg.toFixed(0), icon: "⚖️", color: C.green },
     { label: "Parties",       value: totalParties,         icon: "🤝", color: C.amber },
-    { label: "Sold Bales",    value: soldBales,                 icon: "✅", color: "#7C3AED" },
+    { label: "Sold Bales",    value: soldBales,            icon: "✅", color: "#7C3AED" },
   ];
 
   const modules = [
