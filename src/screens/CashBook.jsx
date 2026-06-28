@@ -4,7 +4,7 @@ import { Shell, TopBar, BottomNav, C } from "../components/ui";
 import { auth } from "../lib/firebase";
 import {
   getFirestore, collection, getDocs, addDoc,
-  doc, setDoc, getDoc, serverTimestamp
+  doc, setDoc, getDoc, deleteDoc, query, where, serverTimestamp
 } from "firebase/firestore";
 
 function today() { return new Date().toISOString().slice(0, 10); }

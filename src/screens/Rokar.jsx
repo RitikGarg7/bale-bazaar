@@ -67,7 +67,23 @@ export default function Rokar({ nav }) {
     const uid = auth.currentUser?.uid;
     if (!uid) return;
     const _db = getFirestore();
+
+    // Delete rokar entry
     await deleteDoc(doc(_db, "users", uid, "rokar", entry.id));
+
+    // Delete linked cashbook entries (matched by voucher_no or by date+amount)
+    const cbSnap = await getDocs(collection(_db, "users", uid, "cashbook_entries"));
+    const toDelete = cbSnap.docs.filter(d => {
+      const data = d.data();
+      if (entry.voucher_no && data.voucher_no === entry.voucher_no) return true;
+      if (data.source === "rokar" && data.date === entry.date) {
+        const amt = Number(data.amount) || 0;
+        if (amt === (entry.cash_dr || 0) || amt === (entry.cash_cr || 0) || amt === (entry.bank_dr || 0) || amt === (entry.bank_cr || 0)) return true;
+      }
+      return false;
+    });
+    await Promise.all(toDelete.map(d => deleteDoc(d.ref)));
+
     loadEntries();
   };
 
