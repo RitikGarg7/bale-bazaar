@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { auth, onAuthStateChanged } from "./lib/firebase";
-import { AppProvider } from "./context/AppContext";
+import { AppProvider, useApp } from "./context/AppContext";
 
-import Login        from "./screens/Login";
-import Home         from "./screens/Home";
-import { Inventory, Catalog, Parties } from "./screens/Placeholders";
+import Login    from "./screens/Login";
+import Home     from "./screens/Home";
+import { Inventory, Parties, Settings } from "./screens/Placeholders";
 
 function Router() {
+  const { logout } = useApp();
   const [screen, setScreen] = useState("login");
   const [hist,   setHist]   = useState([]);
 
@@ -20,7 +21,6 @@ function Router() {
     return () => unsub();
   }, [screen]);
 
-  // iOS swipe-back / Android hardware back interception
   useEffect(() => {
     window.history.pushState({ page: "app" }, "");
     const handlePopState = () => {
@@ -42,6 +42,12 @@ function Router() {
     window.history.pushState({ page: to }, "");
   };
 
+  const handleLogout = async () => {
+    await logout();
+    setScreen("login");
+    setHist([]);
+  };
+
   if (screen === "login") {
     return (
       <Login onLoggedIn={() => {
@@ -53,10 +59,10 @@ function Router() {
   }
 
   const screens = {
-    home:      <Home      nav={nav} />,
+    home:      <Home     nav={nav} />,
     inventory: <Inventory nav={nav} />,
-    catalog:   <Catalog   nav={nav} />,
-    parties:   <Parties   nav={nav} />,
+    parties:   <Parties  nav={nav} />,
+    settings:  <Settings nav={nav} onLogout={handleLogout} />,
   };
 
   return screens[screen] || <Home nav={nav} />;

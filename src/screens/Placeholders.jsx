@@ -17,23 +17,6 @@ export function Inventory({ nav }) {
   );
 }
 
-export function Catalog({ nav }) {
-  return (
-    <Shell>
-      <TopBar title="📸 Catalog" bg={C.navy} onBack={() => nav("home")} />
-      <div style={{ paddingBottom: 100 }}>
-        <EmptyState
-          icon="📸"
-          title="Koi Catalog Item Nahi"
-          subtitle="Bale ki photos/videos yahan upload karein parties ko dikhane ke liye"
-        />
-      </div>
-      <FAB onClick={() => {}} color={C.amber} />
-      <BottomNav active="catalog" nav={nav} />
-    </Shell>
-  );
-}
-
 export function Parties({ nav }) {
   return (
     <Shell>
@@ -47,6 +30,34 @@ export function Parties({ nav }) {
       </div>
       <FAB onClick={() => {}} color={C.green} />
       <BottomNav active="parties" nav={nav} />
+    </Shell>
+  );
+}
+
+export function Settings({ nav, onLogout }) {
+  return (
+    <Shell>
+      <TopBar title="⚙️ Settings" bg={C.navy} onBack={() => nav("home")} />
+      <div style={{ padding: "20px 16px 100px" }}>
+        <EmptyState
+          icon="⚙️"
+          title="Settings"
+          subtitle="Profile, notifications aur app preferences yahan aayenge"
+        />
+        <div style={{ padding: "0 16px" }}>
+          <button
+            onClick={onLogout}
+            style={{
+              width: "100%", padding: "14px", borderRadius: 12,
+              background: "#FDF0EE", border: "1.5px solid #C8230A",
+              color: "#C8230A", fontSize: 15, fontWeight: 700,
+              cursor: "pointer",
+            }}>
+            🚪 Logout
+          </button>
+        </div>
+      </div>
+      <BottomNav active="settings" nav={nav} />
     </Shell>
   );
 }

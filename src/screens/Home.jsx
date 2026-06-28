@@ -1,38 +1,30 @@
 import { useEffect } from "react";
 import { useApp } from "../context/AppContext";
-import { Shell, C, TopBar, Card, BottomNav, Spinner, EmptyState } from "../components/ui";
+import { Shell, C, Card, BottomNav, Spinner, EmptyState } from "../components/ui";
 
 export default function Home({ nav }) {
-  const { session, inventory, parties, catalog, loading, loadAll, logout } = useApp();
+  const { session, inventory, parties, loading, loadAll, logout } = useApp();
 
-  useEffect(() => {
-    loadAll();
-  }, [loadAll]);
+  useEffect(() => { loadAll(); }, [loadAll]);
 
-  const handleLogout = async () => {
-    await logout();
-  };
-
-  // Quick stats
   const totalBales   = inventory.length;
   const inStockKg    = inventory.filter(b => b.status === "in_stock").reduce((s, b) => s + (Number(b.weight_kg) || 0), 0);
   const totalParties = parties.length;
-  const catalogItems = catalog.length;
+  const sold         = inventory.filter(b => b.status === "sold").length;
 
   const stats = [
-    { label: "Total Bales",    value: totalBales,              icon: "📦", color: C.navy  },
-    { label: "In Stock (kg)",  value: inStockKg.toFixed(0),   icon: "⚖️", color: C.green },
-    { label: "Parties",        value: totalParties,            icon: "🤝", color: C.amber },
-    { label: "Catalog Items",  value: catalogItems,            icon: "📸", color: "#7C3AED" },
+    { label: "Total Bales",   value: totalBales,           icon: "📦", color: C.navy  },
+    { label: "In Stock (kg)", value: inStockKg.toFixed(0), icon: "⚖️", color: C.green },
+    { label: "Parties",       value: totalParties,         icon: "🤝", color: C.amber },
+    { label: "Sold Bales",    value: sold,                 icon: "✅", color: "#7C3AED" },
   ];
 
   const modules = [
-    { id: "inventory", icon: "📦", label: "Inventory",  desc: "Bale aur lot manage karein",      ready: true  },
-    { id: "catalog",   icon: "📸", label: "Catalog",    desc: "Photos aur videos upload karein",  ready: true  },
-    { id: "parties",   icon: "🤝", label: "Parties",    desc: "Buyers aur contacts manage karein", ready: true  },
-    { id: "broadcast", icon: "📣", label: "Broadcast",  desc: "Parties ko catalog bhejein",        ready: false },
-    { id: "reports",   icon: "📊", label: "Reports",    desc: "Stock in/out history",              ready: false },
-    { id: "ledger",    icon: "💰", label: "Ledger",     desc: "Payments aur outstanding",          ready: false },
+    { id: "inventory", icon: "📦", label: "Stock / Inventory", desc: "Bale aur lot manage karein",          ready: true  },
+    { id: "parties",   icon: "🤝", label: "Parties",           desc: "Buyers aur contacts manage karein",   ready: true  },
+    { id: "broadcast", icon: "📣", label: "Broadcast",         desc: "Parties ko catalog bhejein",          ready: false },
+    { id: "reports",   icon: "📊", label: "Reports",           desc: "Stock in/out history",                ready: false },
+    { id: "ledger",    icon: "💰", label: "Ledger",            desc: "Payments aur outstanding",            ready: false },
   ];
 
   return (
@@ -40,8 +32,7 @@ export default function Home({ nav }) {
       {/* Header */}
       <div style={{
         background: `linear-gradient(160deg, ${C.navyDark} 0%, ${C.navy} 100%)`,
-        padding: "0 16px",
-        paddingBottom: 20,
+        padding: "0 16px 20px",
       }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 56 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -50,39 +41,27 @@ export default function Home({ nav }) {
               Bale Bazaar
             </span>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            {session?.photoURL && (
-              <img src={session.photoURL} alt="avatar" style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.3)" }} />
-            )}
-            <button onClick={handleLogout} style={{
-              background: "rgba(255,255,255,0.12)",
-              color: C.white,
-              border: "1px solid rgba(255,255,255,0.2)",
-              borderRadius: 8,
-              padding: "6px 14px",
-              fontSize: 13,
-              cursor: "pointer",
-              fontWeight: 500,
-            }}>Logout</button>
-          </div>
+          {session?.photoURL && (
+            <img
+              src={session.photoURL}
+              alt="avatar"
+              onClick={() => nav("settings")}
+              style={{ width: 34, height: 34, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.35)", cursor: "pointer" }}
+            />
+          )}
         </div>
-
-        {/* Welcome */}
-        <div style={{ paddingBottom: 4 }}>
-          <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 12, marginBottom: 2 }}>Jai Shri Ram 🙏</p>
-          <h2 style={{ color: C.white, fontSize: 20, fontFamily: "'Baloo 2'", fontWeight: 700, margin: 0 }}>
-            {session?.displayName?.split(" ")[0] || "Sethji"} ka Dashboard
-          </h2>
-        </div>
+        <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 12, marginBottom: 2 }}>Jai Shri Ram 🙏</p>
+        <h2 style={{ color: C.white, fontSize: 20, fontFamily: "'Baloo 2'", fontWeight: 700, margin: 0 }}>
+          {session?.displayName?.split(" ")[0] || "Sethji"} ka Dashboard
+        </h2>
       </div>
 
       <div style={{ padding: "16px 16px 100px" }}>
-
-        {/* Stats Grid */}
+        {/* Stats */}
         {loading ? <Spinner /> : (
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 20 }}>
             {stats.map(s => (
-              <Card key={s.label} style={{ padding: "14px 14px" }}>
+              <Card key={s.label} style={{ padding: "14px" }}>
                 <div style={{
                   width: 36, height: 36, borderRadius: 10,
                   background: s.color + "18", color: s.color,

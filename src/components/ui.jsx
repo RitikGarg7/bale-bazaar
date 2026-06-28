@@ -32,14 +32,13 @@ export const G = `
   @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 `;
 
-// Mobile-first shell — max 430px centered, like mandi-khata
 export function Shell({ children, style }) {
   return (
     <div style={{
       maxWidth: 430,
       margin: "0 auto",
       minHeight: "100vh",
-      minHeight: "100dvh", // dynamic viewport height (handles mobile browser chrome)
+      minHeight: "100dvh",
       background: C.bg,
       position: "relative",
       overflowX: "hidden",
@@ -194,13 +193,13 @@ export function Divider({ label }) {
   );
 }
 
-// Bottom nav — fixed, respects safe area on iPhone
+// BottomNav — Home, Stock, Parties, Settings
 export function BottomNav({ active, nav }) {
   const items = [
-    ["home",      "🏠", "Home"],
-    ["inventory", "📦", "Stock"],
-    ["catalog",   "📸", "Catalog"],
-    ["parties",   "🤝", "Parties"],
+    ["home",      "🏠",  "Home"],
+    ["inventory", "📦",  "Stock"],
+    ["parties",   "🤝",  "Parties"],
+    ["settings",  "⚙️",  "Settings"],
   ];
   return (
     <div style={{
