@@ -70,31 +70,7 @@ export default function CashBook({ onBack, nav }) {
       .map(d => ({ id: d.id, ...d.data(), source: "manual" }))
       .filter(e => e.date === date);
 
-    // Auto-pull from party ledger
-    const autoEntries = [];
-    const partiesSnap = await getDocs(collection(_db, "users", uid, "parties"));
-    for (const pd of partiesSnap.docs) {
-      const lsnap = await getDocs(collection(_db, "users", uid, "parties", pd.id, "ledger"));
-      for (const ld of lsnap.docs) {
-        const data = ld.data();
-        if (data.date !== date) continue;
-        if (data.type === "payment" && data.amount > 0) {
-          const acct = data.pay_mode === "bank" ? "bank" : "cash";
-          autoEntries.push({ id: ld.id + "_pay", type: "in", account: acct, amount: data.amount, particulars: "By " + pd.data().name, source: "auto", ts: data.updatedAt?.seconds || 0 });
-        }
-        if (data.type === "sale" && data.paid_now > 0) {
-          const acct = data.pay_mode === "bank" ? "bank" : "cash";
-          autoEntries.push({ id: ld.id + "_sale", type: "in", account: acct, amount: data.paid_now, particulars: "To Sales — " + (data.note || pd.data().name), source: "auto", ts: data.updatedAt?.seconds || 0 });
-        }
-        if (data.type === "sale" && data.expenses?.length > 0) {
-          data.expenses.forEach((exp, i) => {
-            autoEntries.push({ id: ld.id + "_exp_" + i, type: "out", account: "cash", amount: exp.amount, particulars: "By " + exp.type + (exp.note ? " — " + exp.note : ""), source: "auto", ts: data.updatedAt?.seconds || 0 });
-          });
-        }
-      }
-    }
-
-    const all = [...manual, ...autoEntries].sort((a, b) => (a.ts || 0) - (b.ts || 0));
+    const all = [...manual].sort((a, b) => (a.ts || 0) - (b.ts || 0));
     setEntries(all);
     setLoading(false);
   };
