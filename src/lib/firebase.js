@@ -61,6 +61,14 @@ export const db = {
     return snap.docs.map(d => ({ id: d.id, ...d.data() }));
   },
 
+  async getSubAll(table, docId, subTable) {
+    const uid  = currentUid();
+    const ref  = collection(_db, "users", uid, table, docId, subTable);
+    const q    = query(ref, orderBy("updatedAt", "desc"));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  },
+
   async upsert(table, id, data) {
     const uid = currentUid();
     const ref = id ? userDoc(uid, table, id) : doc(userCol(uid, table));
