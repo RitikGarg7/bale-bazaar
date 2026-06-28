@@ -21,22 +21,14 @@ import {
 } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
-const apiKey = import.meta.env.VITE_FIREBASE_API_KEY;
-
-if (!apiKey || apiKey === "your_api_key") {
-  console.warn(
-    "⚠️  Firebase env vars not set. Copy .env.example → .env and fill in your Firebase config.\n" +
-    "   On Vercel: add VITE_FIREBASE_* vars in Project → Settings → Environment Variables."
-  );
-}
-
+// Fallback to hardcoded config if env vars not set (for quick deploy)
 const firebaseConfig = {
-  apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain:        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId:         import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket:     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId:             import.meta.env.VITE_FIREBASE_APP_ID,
+  apiKey:            import.meta.env.VITE_FIREBASE_API_KEY            || "AIzaSyAWqfvXGAyDqkyvXzl9KiGWSUPWDZgWm04",
+  authDomain:        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN        || "bale-bazaar.firebaseapp.com",
+  projectId:         import.meta.env.VITE_FIREBASE_PROJECT_ID         || "bale-bazaar",
+  storageBucket:     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET     || "bale-bazaar.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "498474421999",
+  appId:             import.meta.env.VITE_FIREBASE_APP_ID             || "1:498474421999:web:efbf0ef93156f66dd2d51a",
 };
 
 const app    = initializeApp(firebaseConfig);
