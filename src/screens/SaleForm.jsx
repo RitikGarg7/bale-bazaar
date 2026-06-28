@@ -90,13 +90,29 @@ export default function SaleForm({ bale, onDone, onBack }) {
         status:     newStatus,
       }, bale.id);
 
-      // 3. Update party outstanding (they owe you the sale amount)
+      // 3. Update party outstanding + write ledger entry
       if (partyId && selectedParty) {
         const currentOutstanding = selectedParty.outstanding || 0;
         await saveParty({
           ...selectedParty,
           outstanding: currentOutstanding + saleAmt,
         }, partyId);
+
+        // Write to party ledger
+        const ledgerRef = collection(_db, "users", uid, "parties", partyId, "ledger");
+        await addDoc(ledgerRef, {
+          type:         "sale",
+          amount:       saleAmt,
+          num_bales:    balesNum,
+          weight_kg:    bale.weight_kg,
+          total_weight: totalWt,
+          sale_rate:    rateNum,
+          bale_brand:   bale.brand,
+          bale_category: bale.category,
+          date:         saleDate,
+          note:         bale.brand + " " + bale.category + " × " + balesNum + " bales",
+          updatedAt:    serverTimestamp(),
+        });
       }
 
       onDone();

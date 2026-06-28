@@ -1,3 +1,4 @@
+import PartyLedger from "./PartyLedger";
 import { useState, useEffect } from "react";
 import { useApp } from "../context/AppContext";
 import { Shell, TopBar, BottomNav, Card, FAB, Spinner, EmptyState, C, Tag } from "../components/ui";
@@ -15,7 +16,7 @@ function typeColor(t) {
 }
 
 // ── Party Card ────────────────────────────────────────────────────────────────
-function PartyCard({ party, onTap }) {
+function PartyCard({ party, onTap, onEdit }) {
   const tc = typeColor(party.type);
   return (
     <Card onClick={onTap} style={{ marginBottom: 8, padding: "14px 16px" }}>
@@ -72,7 +73,14 @@ function PartyCard({ party, onTap }) {
           )}
         </div>
 
-        <span style={{ color: C.border, fontSize: 20, flexShrink: 0 }}>›</span>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "flex-end", flexShrink: 0 }}>
+          <span style={{ color: C.border, fontSize: 20 }}>›</span>
+          <button onClick={e => { e.stopPropagation(); onEdit(); }} style={{
+            background: C.bg, border: "1px solid " + C.border,
+            borderRadius: 6, padding: "3px 8px",
+            fontSize: 11, color: C.inkMid, cursor: "pointer", fontWeight: 600,
+          }}>✏️ Edit</button>
+        </div>
       </div>
     </Card>
   );
@@ -83,7 +91,8 @@ export default function Parties({ nav }) {
   const { parties, loadAll, loading } = useApp();
   const [search,   setSearch]   = useState("");
   const [filter,   setFilter]   = useState("All");
-  const [showForm, setShowForm] = useState(false);
+  const [showForm,   setShowForm]   = useState(false);
+  const [ledgerItem, setLedgerItem] = useState(null);
   const [editItem, setEditItem] = useState(null);
   const [prefill,  setPrefill]  = useState(null);
 
@@ -116,6 +125,15 @@ export default function Parties({ nav }) {
       if (e.name !== "AbortError") alert("Contacts access nahi mila: " + e.message);
     }
   };
+
+  if (ledgerItem) {
+    return (
+      <PartyLedger
+        party={ledgerItem}
+        onBack={() => { setLedgerItem(null); loadAll(); }}
+      />
+    );
+  }
 
   if (showForm || editItem) {
     return (
@@ -171,7 +189,7 @@ export default function Parties({ nav }) {
           />
         ) : (
           sorted.map(p => (
-            <PartyCard key={p.id} party={p} onTap={() => setEditItem(p)} />
+            <PartyCard key={p.id} party={p} onTap={() => setLedgerItem(p)} onEdit={() => setEditItem(p)} />
           ))
         )}
       </div>
