@@ -1,3 +1,4 @@
+import SupplierLedger from "./SupplierLedger";
 import CashBookScreen from "./CashBook";
 import { useState, useEffect } from "react";
 import { useApp } from "../context/AppContext";
@@ -30,11 +31,13 @@ export default function Reports({ nav }) {
   if (active === "pl")          return <StockPL      onBack={() => setActive("home")} nav={nav} />;
   if (active === "cashbook")    return <CashBookScreen onBack={() => setActive("home")} nav={nav} />;
   if (active === "outstanding") return <Outstanding  onBack={() => setActive("home")} nav={nav} />;
+  if (active === "suppliers")   return <SupplierLedger onBack={() => setActive("home")} nav={nav} />;
 
   const cards = [
     { id: "pl",          icon: "📊", label: "Stock P&L",          desc: "Har lot ka profit/loss" },
     { id: "cashbook",    icon: "💵", label: "Cash & Bank Book",    desc: "Daily cash aur bank transactions" },
     { id: "outstanding", icon: "📋", label: "Party Outstandings",  desc: "Kaun kitna dega" },
+    { id: "suppliers",   icon: "🏭", label: "Supplier Ledger",    desc: "Suppliers ka hisaab" },
   ];
 
   return (
