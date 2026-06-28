@@ -1,3 +1,4 @@
+import Rokar from "./screens/Rokar";
 import Reports from "./screens/Reports";
 import { useState, useEffect } from "react";
 import { auth, onAuthStateChanged } from "./lib/firebase";
@@ -64,6 +65,7 @@ function Router() {
     parties:   <Parties   nav={nav} />,
     settings:  <Settings  nav={nav} onLogout={handleLogout} />,
     reports:   <Reports   nav={nav} />,
+    rokar:     <Rokar     nav={nav} />,
   };
 
   return screens[screen] || <Home nav={nav} />;

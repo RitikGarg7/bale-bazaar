@@ -48,12 +48,12 @@ export default function Home({ nav }) {
               <img src={session.photoURL} alt="avatar"
                 style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.35)" }} />
             )}
-            <button onClick={logout} style={{
+            <button onClick={() => nav("settings")} style={{
               background: "rgba(255,255,255,0.12)", color: "white",
               border: "1px solid rgba(255,255,255,0.2)",
-              borderRadius: 8, padding: "5px 12px", fontSize: 12,
-              fontWeight: 600, cursor: "pointer",
-            }}>Logout</button>
+              borderRadius: 8, padding: "5px 10px", fontSize: 16,
+              cursor: "pointer",
+            }}>⚙️</button>
           </div>
         </div>
         <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 12, marginBottom: 2 }}>Jai Shri Ram 🙏</p>

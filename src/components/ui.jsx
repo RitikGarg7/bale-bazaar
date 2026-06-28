@@ -199,7 +199,8 @@ export function BottomNav({ active, nav }) {
     ["home",      "🏠",  "Home"],
     ["inventory", "📦",  "Stock"],
     ["parties",   "🤝",  "Parties"],
-    ["settings",  "⚙️",  "Settings"],
+    ["rokar",     "📒",  "Rokar"],
+    ["reports",   "📊",  "Reports"],
   ];
   return (
     <div style={{
