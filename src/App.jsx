@@ -1,3 +1,4 @@
+import Reports from "./screens/Reports";
 import { useState, useEffect } from "react";
 import { auth, onAuthStateChanged } from "./lib/firebase";
 import { AppProvider, useApp } from "./context/AppContext";
@@ -62,6 +63,7 @@ function Router() {
     inventory: <Inventory nav={nav} />,
     parties:   <Parties   nav={nav} />,
     settings:  <Settings  nav={nav} onLogout={handleLogout} />,
+    reports:   <Reports   nav={nav} />,
   };
 
   return screens[screen] || <Home nav={nav} />;
