@@ -148,6 +148,15 @@ export default function CashBook({ onBack, nav }) {
     setBusy(false);
   };
 
+  const handleDelete = async (entry) => {
+    if (!entry?.id || entry.source !== "manual") return;
+    if (!window.confirm("Yeh entry delete karein?")) return;
+    const uid = auth.currentUser?.uid;
+    const _db = getFirestore();
+    await deleteDoc(doc(_db, "users", uid, "cashbook_entries", entry.id));
+    await loadData();
+  };
+
   // ── Calculate totals ─────────────────────────────────────────────────────────
   const drEntries = entries.filter(e => e.type === "in");
   const crEntries = entries.filter(e => e.type === "out");
@@ -275,10 +284,13 @@ export default function CashBook({ onBack, nav }) {
                     {/* Dr side */}
                     <td style={dateCell}>{dr ? shortDate(date) : ""}</td>
                     <td style={{ ...partCell, color: dr?.source === "auto" ? C.navy : C.ink }}>
-                      {dr ? (dr.particulars || "—") : ""}
-                      {dr?.source === "auto" && (
-                        <span style={{ fontSize: 9, color: C.amber, marginLeft: 4, fontWeight: 700 }}>AUTO</span>
-                      )}
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 4 }}>
+                        <span>{dr ? (dr.particulars || "—") : ""}</span>
+                        {dr?.source === "auto" && <span style={{ fontSize: 9, color: C.amber, fontWeight: 700 }}>AUTO</span>}
+                        {dr?.source === "manual" && (
+                          <button onClick={() => handleDelete(dr)} style={{ background: "none", border: "none", color: C.red, cursor: "pointer", fontSize: 13, padding: 0, flexShrink: 0 }}>🗑</button>
+                        )}
+                      </div>
                     </td>
                     <td style={amtCell}>{dr?.account === "cash" && dr?.amount ? fmt(dr.amount) : (dr ? "—" : "")}</td>
                     <td style={amtCell}>{dr?.account === "bank" && dr?.amount ? fmt(dr.amount) : (dr ? "—" : "")}</td>
@@ -287,10 +299,13 @@ export default function CashBook({ onBack, nav }) {
                     {/* Cr side */}
                     <td style={dateCell}>{cr ? shortDate(date) : ""}</td>
                     <td style={{ ...partCell, color: cr?.source === "auto" ? C.navy : C.ink }}>
-                      {cr ? (cr.particulars || "—") : ""}
-                      {cr?.source === "auto" && (
-                        <span style={{ fontSize: 9, color: C.amber, marginLeft: 4, fontWeight: 700 }}>AUTO</span>
-                      )}
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 4 }}>
+                        <span>{cr ? (cr.particulars || "—") : ""}</span>
+                        {cr?.source === "auto" && <span style={{ fontSize: 9, color: C.amber, fontWeight: 700 }}>AUTO</span>}
+                        {cr?.source === "manual" && (
+                          <button onClick={() => handleDelete(cr)} style={{ background: "none", border: "none", color: C.red, cursor: "pointer", fontSize: 13, padding: 0, flexShrink: 0 }}>🗑</button>
+                        )}
+                      </div>
                     </td>
                     <td style={amtCell}>{cr?.account === "cash" && cr?.amount ? fmt(cr.amount) : (cr ? "—" : "")}</td>
                     <td style={amtCell}>{cr?.account === "bank" && cr?.amount ? fmt(cr.amount) : (cr ? "—" : "")}</td>
