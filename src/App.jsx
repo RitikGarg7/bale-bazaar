@@ -5,7 +5,8 @@ import { AppProvider, useApp } from "./context/AppContext";
 import Login     from "./screens/Login";
 import Home      from "./screens/Home";
 import Inventory from "./screens/Inventory";
-import { Parties, Settings } from "./screens/Placeholders";
+import Parties from "./screens/Parties";
+import { Settings } from "./screens/Placeholders";
 
 function Router() {
   const { logout } = useApp();
