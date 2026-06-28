@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useApp } from "../context/AppContext";
 import { Shell, TopBar, BottomNav, Card, FAB, Spinner, EmptyState, C, Tag } from "../components/ui";
+import MediaGallery from "../components/MediaGallery";
 
 const COUNTRIES  = ["All", "Korea", "China", "USA", "UK", "Canada", "Australia", "Other"];
 const CATEGORIES = ["Mix", "Shirts", "T-Shirts", "Jeans", "Trousers", "Jackets", "Kids", "Ladies", "Sweaters", "Shoes"];
@@ -36,10 +37,13 @@ function BaleCard({ bale, onTap }) {
     ? { bg: C.greenLight, color: C.green, label: "Sold" }
     : { bg: C.navyLight,  color: C.navy,  label: "In Stock" };
 
+  const photoCount = bale.media?.length || 0;
+
   return (
     <Card onClick={onTap} style={{ marginBottom: 8, padding: "12px 14px" }}>
       <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
         <div style={{ flex: 1 }}>
+          {/* Top row — category, grade, status */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
             <span style={{ fontWeight: 700, fontSize: 14, color: C.ink }}>{bale.category}</span>
             <Tag color={gradeColor(bale.quality).c} bg={gradeColor(bale.quality).bg}>Grade {bale.quality}</Tag>
@@ -47,17 +51,31 @@ function BaleCard({ bale, onTap }) {
               {statusColor.label}
             </span>
           </div>
-          <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: bale.notes ? 6 : 0 }}>
-            <Stat label="Bales"     value={bale.num_bales} />
-            <Stat label="Wt/Bale"  value={`${bale.weight_kg} kg`} />
+
+          {/* Stats row */}
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+            <Stat label="Bales"    value={bale.num_bales} />
+            <Stat label="Wt/Bale" value={`${bale.weight_kg} kg`} />
             {bale.price_per_kg && <Stat label="₹/kg" value={`₹${bale.price_per_kg}`} />}
           </div>
-          {bale.date && (
-            <div style={{ fontSize: 11, color: C.inkLight, marginTop: 4 }}>
-              📅 {new Date(bale.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-            </div>
+
+          {/* Date + photo count */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6 }}>
+            {bale.date && (
+              <span style={{ fontSize: 11, color: C.inkLight }}>
+                📅 {new Date(bale.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+              </span>
+            )}
+            {photoCount > 0 && (
+              <span style={{ fontSize: 11, color: C.navy, fontWeight: 600 }}>
+                📸 {photoCount} {photoCount === 1 ? "photo" : "photos"}
+              </span>
+            )}
+          </div>
+
+          {bale.notes && (
+            <p style={{ fontSize: 12, color: C.inkLight, marginTop: 4, fontStyle: "italic" }}>{bale.notes}</p>
           )}
-          {bale.notes && <p style={{ fontSize: 12, color: C.inkLight, marginTop: 4, fontStyle: "italic" }}>{bale.notes}</p>}
         </div>
         <span style={{ color: C.border, fontSize: 20 }}>›</span>
       </div>
@@ -76,11 +94,7 @@ export default function Inventory({ nav }) {
 
   const filtered = filter === "All" ? inventory : inventory.filter(b => b.country === filter);
 
-  // Sort by date desc, then group by brand
-  const sorted = [...filtered].sort((a, b) => {
-    const da = a.date || ""; const db = b.date || "";
-    return db.localeCompare(da);
-  });
+  const sorted = [...filtered].sort((a, b) => (b.date || "").localeCompare(a.date || ""));
 
   const byBrand = sorted.reduce((acc, bale) => {
     const key = `${bale.brand}||${bale.country}`;
@@ -95,7 +109,6 @@ export default function Inventory({ nav }) {
         item={editItem}
         onDone={() => { setShowForm(false); setEditItem(null); loadAll(); }}
         onBack={() => { setShowForm(false); setEditItem(null); }}
-        nav={nav}
       />
     );
   }
@@ -158,8 +171,7 @@ function BaleForm({ item, onDone, onBack }) {
   const { saveBale, deleteBale, inventory } = useApp();
   const isEdit = !!item;
 
-  // detect if saved category is custom (not in our list)
-  const savedCat     = item?.category || "Mix";
+  const savedCat      = item?.category || "Mix";
   const isCustomSaved = !CATEGORIES.includes(savedCat);
 
   const [country,        setCountry]        = useState(item?.country      || "Korea");
@@ -173,6 +185,7 @@ function BaleForm({ item, onDone, onBack }) {
   const [date,           setDate]           = useState(item?.date         || new Date().toISOString().slice(0, 10));
   const [status,         setStatus]         = useState(item?.status       || "in_stock");
   const [notes,          setNotes]          = useState(item?.notes        || "");
+  const [media,          setMedia]          = useState(item?.media        || []);
   const [busy,           setBusy]           = useState(false);
   const [showBrands,     setShowBrands]     = useState(false);
 
@@ -190,10 +203,10 @@ function BaleForm({ item, onDone, onBack }) {
   const totalValue  = totalWeight && pricePerKg ? (totalWeight * Number(pricePerKg)).toLocaleString("en-IN") : null;
 
   const handleSave = async () => {
-    if (!brandInput.trim())  return alert("Brand ka naam likhein");
-    if (!finalCategory)      return alert("Category likhein");
-    if (!weightKg)           return alert("Weight likhein");
-    if (!numBales)           return alert("Bales ki ginti likhein");
+    if (!brandInput.trim()) return alert("Brand ka naam likhein");
+    if (!finalCategory)     return alert("Category likhein");
+    if (!weightKg)          return alert("Weight likhein");
+    if (!numBales)          return alert("Bales ki ginti likhein");
 
     setBusy(true);
     try {
@@ -208,6 +221,7 @@ function BaleForm({ item, onDone, onBack }) {
         date,
         status,
         notes: notes.trim(),
+        media,
       }, item?.id || null);
       onDone();
     } catch (e) {
@@ -247,17 +261,16 @@ function BaleForm({ item, onDone, onBack }) {
         <Label>Country *</Label>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
           {COUNTRIES.filter(c => c !== "All").map(c => (
-            <button key={c} onClick={() => { setCountry(c); setBrandInput(""); }}
-              style={{
-                padding: "8px 16px", borderRadius: 20, border: "none", fontSize: 13,
-                fontWeight: 600, cursor: "pointer",
-                background: country === c ? C.navy : C.bg,
-                color:      country === c ? C.white : C.inkMid,
-              }}>{c}</button>
+            <button key={c} onClick={() => { setCountry(c); setBrandInput(""); }} style={{
+              padding: "8px 16px", borderRadius: 20, border: "none", fontSize: 13,
+              fontWeight: 600, cursor: "pointer",
+              background: country === c ? C.navy : C.bg,
+              color:      country === c ? C.white : C.inkMid,
+            }}>{c}</button>
           ))}
         </div>
 
-        {/* Brand with autocomplete */}
+        {/* Brand */}
         <Label>Brand * <span style={{ color: C.inkLight, fontWeight: 400 }}>({country})</span></Label>
         <div style={{ position: "relative", marginBottom: 16 }}>
           <input
@@ -288,7 +301,7 @@ function BaleForm({ item, onDone, onBack }) {
           )}
         </div>
 
-        {/* Category chips + custom input */}
+        {/* Category */}
         <Label>Category *</Label>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: category === "custom" ? 8 : 16 }}>
           {CATEGORIES.map(c => (
@@ -300,7 +313,8 @@ function BaleForm({ item, onDone, onBack }) {
             }}>{c}</button>
           ))}
           <button onClick={() => setCategory("custom")} style={{
-            padding: "7px 14px", borderRadius: 20, border: `1.5px dashed ${category === "custom" ? C.amber : C.border}`,
+            padding: "7px 14px", borderRadius: 20,
+            border: `1.5px dashed ${category === "custom" ? C.amber : C.border}`,
             fontSize: 13, fontWeight: 600, cursor: "pointer",
             background: category === "custom" ? C.amberLight : "transparent",
             color:      category === "custom" ? C.amberDark : C.inkLight,
@@ -337,10 +351,7 @@ function BaleForm({ item, onDone, onBack }) {
 
         {/* Date */}
         <Label>Date *</Label>
-        <input
-          type="date"
-          value={date}
-          onChange={e => setDate(e.target.value)}
+        <input type="date" value={date} onChange={e => setDate(e.target.value)}
           style={{
             width: "100%", padding: "12px 16px", borderRadius: 10,
             border: `1.5px solid ${C.border}`, fontSize: 14,
@@ -402,7 +413,13 @@ function BaleForm({ item, onDone, onBack }) {
         <textarea value={notes} onChange={e => setNotes(e.target.value)}
           placeholder="Koi khaas baat? e.g. mixed sizes, minor defects..."
           rows={3}
-          style={{ width: "100%", padding: "12px 16px", borderRadius: 10, border: `1.5px solid ${C.border}`, fontSize: 14, resize: "none", marginBottom: 20 }} />
+          style={{ width: "100%", padding: "12px 16px", borderRadius: 10, border: `1.5px solid ${C.border}`, fontSize: 14, resize: "none", marginBottom: 16 }} />
+
+        {/* Photos / Videos */}
+        <Label>Photos / Videos <span style={{ color: C.inkLight, fontWeight: 400 }}>(optional)</span></Label>
+        <MediaGallery baleId={item?.id} media={media} onChange={setMedia} />
+
+        <div style={{ height: 20 }} />
 
         {/* Save */}
         <button onClick={handleSave} disabled={busy} style={{
