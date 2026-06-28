@@ -40,72 +40,65 @@ function BaleCard({ bale, onTap, onSell, onBroadcast }) {
   const photoCount  = bale.media?.length || 0;
   const isFullySold = remaining <= 0;
 
-  const statusColor = isFullySold
-    ? { bg: C.greenLight,  color: C.green,    label: "Sold Out" }
-    : soldBales > 0
-    ? { bg: C.amberLight,  color: C.amberDark, label: remaining + " baaki" }
-    : { bg: C.navyLight,   color: C.navy,     label: "In Stock" };
+  const statusBg    = isFullySold ? C.greenLight : soldBales > 0 ? C.amberLight : C.navyLight;
+  const statusColor = isFullySold ? C.green      : soldBales > 0 ? C.amberDark  : C.navy;
+  const statusLabel = isFullySold ? "Sold Out"   : remaining + " baaki";
 
   return (
-    <Card onClick={onTap} style={{ marginBottom: 8, padding: "12px 14px" }}>
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
-            <span style={{ fontWeight: 700, fontSize: 14, color: C.ink }}>{bale.category}</span>
-            <Tag color={gradeColor(bale.quality).c} bg={gradeColor(bale.quality).bg}>Grade {bale.quality}</Tag>
-            <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 20, background: statusColor.bg, color: statusColor.color }}>
-              {statusColor.label}
-            </span>
-          </div>
+    <Card style={{ marginBottom: 8, padding: "12px 14px" }}>
+      {/* Row 1 — category + grade + status + actions */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+        <span onClick={onTap} style={{ fontWeight: 700, fontSize: 15, color: C.ink, flex: 1, cursor: "pointer" }}>
+          {bale.category}
+        </span>
+        <Tag color={gradeColor(bale.quality).c} bg={gradeColor(bale.quality).bg}>{bale.quality}</Tag>
+        <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 20, background: statusBg, color: statusColor }}>
+          {statusLabel}
+        </span>
+      </div>
 
-          <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-            <Stat label="Total"     value={bale.num_bales + " bales"} />
-            <Stat label="Sold"      value={soldBales} />
-            <Stat label="Remaining" value={remaining} />
-            <Stat label="Wt/Bale"  value={bale.weight_kg + " kg"} />
-            {bale.price_per_kg && <Stat label="Buy ₹/kg" value={"₹" + bale.price_per_kg} />}
-          </div>
-
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6 }}>
-            {bale.date && (
-              <span style={{ fontSize: 11, color: C.inkLight }}>
-                {"📅 " + new Date(bale.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-              </span>
-            )}
-            {photoCount > 0 && (
-              <span style={{ fontSize: 11, color: C.navy, fontWeight: 600 }}>{"📸 " + photoCount}</span>
-            )}
-          </div>
-
-          {bale.notes && (
-            <p style={{ fontSize: 12, color: C.inkLight, marginTop: 4, fontStyle: "italic" }}>{bale.notes}</p>
-          )}
+      {/* Row 2 — key numbers + action buttons */}
+      <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
+        <div onClick={onTap} style={{ flex: 1, display: "flex", gap: 16, cursor: "pointer" }}>
+          <Stat label="Bales" value={bale.num_bales} />
+          <Stat label="Wt/Bale" value={bale.weight_kg + " kg"} />
+          {bale.price_per_kg && <Stat label="₹/kg" value={"₹" + bale.price_per_kg} />}
+          {photoCount > 0 && <Stat label="Photos" value={"📸 " + photoCount} />}
         </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "flex-end", flexShrink: 0 }}>
-          <span style={{ color: C.border, fontSize: 20 }}>›</span>
+        <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
           {!isFullySold && (
-            <button
-              onClick={e => { e.stopPropagation(); onSell(); }}
-              style={{
-                background: C.green, color: C.white, border: "none",
-                borderRadius: 8, padding: "5px 10px",
-                fontSize: 11, fontWeight: 700, cursor: "pointer",
-              }}>
-              💸 Sell
-            </button>
+            <button onClick={e => { e.stopPropagation(); onSell(); }} style={{
+              background: C.green, color: C.white, border: "none",
+              borderRadius: 8, padding: "7px 11px", fontSize: 12,
+              fontWeight: 700, cursor: "pointer",
+            }}>💸</button>
           )}
-          <button
-            onClick={e => { e.stopPropagation(); onBroadcast(); }}
-            style={{
-              background: C.amber, color: C.white, border: "none",
-              borderRadius: 8, padding: "5px 10px",
-              fontSize: 11, fontWeight: 700, cursor: "pointer",
-            }}>
-            📣
-          </button>
+          <button onClick={e => { e.stopPropagation(); onBroadcast(); }} style={{
+            background: C.amber, color: C.white, border: "none",
+            borderRadius: 8, padding: "7px 11px", fontSize: 12,
+            fontWeight: 700, cursor: "pointer",
+          }}>📣</button>
+          <button onClick={onTap} style={{
+            background: C.bg, color: C.inkLight, border: "none",
+            borderRadius: 8, padding: "7px 11px", fontSize: 14,
+            fontWeight: 300, cursor: "pointer",
+          }}>›</button>
         </div>
       </div>
+
+      {/* Row 3 — date + notes (only if present) */}
+      {(bale.date || bale.notes) && (
+        <div style={{ marginTop: 6, display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {bale.date && (
+            <span style={{ fontSize: 11, color: C.inkLight }}>
+              📅 {new Date(bale.date).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+            </span>
+          )}
+          {bale.notes && (
+            <span style={{ fontSize: 11, color: C.inkLight, fontStyle: "italic" }}>{bale.notes}</span>
+          )}
+        </div>
+      )}
     </Card>
   );
 }
