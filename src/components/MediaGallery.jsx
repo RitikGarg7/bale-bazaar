@@ -7,7 +7,7 @@ import { useState, useRef } from "react";
 import { uploadToDrive, deleteFromDrive, getDriveToken } from "../lib/drive";
 import { C } from "./ui";
 
-export default function MediaGallery({ baleId, media = [], onChange }) {
+export default function MediaGallery({ baleId, media = [], onChange, country, brand }) {
   const [uploading,  setUploading]  = useState(false);
   const [progress,   setProgress]   = useState(0);
   const [authNeeded, setAuthNeeded] = useState(false);
@@ -36,7 +36,7 @@ export default function MediaGallery({ baleId, media = [], onChange }) {
     for (const file of Array.from(files)) {
       try {
         setProgress(0);
-        const result = await uploadToDrive(file, setProgress);
+        const result = await uploadToDrive(file, country || "Unknown", brand || "Unknown", setProgress);
         uploaded.push(result);
       } catch (e) {
         setError("Upload failed: " + e.message);

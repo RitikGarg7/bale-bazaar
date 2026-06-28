@@ -1,34 +1,33 @@
 /**
  * Google Drive integration
- * Uses the user's own Drive — files stored in "Bale Bazaar" folder
+ * Folder hierarchy: Bale Bazaar > {Country} > {Brand} > files
  * Scope: drive.file (only files created by this app)
  */
 
-const DRIVE_SCOPE  = "https://www.googleapis.com/auth/drive.file";
-const FOLDER_NAME  = "Bale Bazaar";
+const DRIVE_SCOPE   = "https://www.googleapis.com/auth/drive.file";
+const ROOT_FOLDER   = "Bale Bazaar";
+const CLIENT_ID     = import.meta.env.VITE_GOOGLE_CLIENT_ID || "498474421999-6eoj03p66na5homksk23gmqbggt4emi5.apps.googleusercontent.com";
 
 let accessToken = null;
 
-// ── Auth ──────────────────────────────────────────────────────────────────────
-const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "498474421999-6eoj03p66na5homksk23gmqbggt4emi5.apps.googleusercontent.com";
-
-// Store token in sessionStorage so it survives page navigation
+// ── Token cache ───────────────────────────────────────────────────────────────
 function getSavedToken() {
   try { return sessionStorage.getItem("drive_token"); } catch { return null; }
 }
 function saveToken(t) {
   try { sessionStorage.setItem("drive_token", t); } catch {}
 }
+export function clearDriveToken() {
+  accessToken = null;
+  try { sessionStorage.removeItem("drive_token"); } catch {}
+}
 
+// ── Auth ──────────────────────────────────────────────────────────────────────
 export async function getDriveToken() {
-  // 1. In-memory cache
   if (accessToken) return accessToken;
-
-  // 2. SessionStorage (survives component remounts)
   const saved = getSavedToken();
   if (saved) { accessToken = saved; return accessToken; }
 
-  // 3. Try popup first; fall back to a clear user-triggered request
   return new Promise((resolve, reject) => {
     const client = window.google.accounts.oauth2.initTokenClient({
       client_id: CLIENT_ID,
@@ -41,43 +40,63 @@ export async function getDriveToken() {
       },
       error_callback: (err) => reject(new Error(err.message || "Auth failed")),
     });
-    // prompt: "" skips consent if already granted; use "consent" to force
     client.requestAccessToken({ prompt: "" });
   });
 }
 
-export function clearDriveToken() {
-  accessToken = null;
-  try { sessionStorage.removeItem("drive_token"); } catch {}
-}
+// ── Folder helpers ────────────────────────────────────────────────────────────
+// In-memory folder ID cache so we don't re-query Drive on every upload
+const folderCache = {};
 
-// ── Ensure "Bale Bazaar" folder exists ───────────────────────────────────────
-async function getOrCreateFolder(token) {
-  // Search for existing folder
-  const search = await fetch(
-    `https://www.googleapis.com/drive/v3/files?q=name='${FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false&fields=files(id,name)`,
+async function findOrCreateFolder(token, name, parentId = null) {
+  const cacheKey = `${parentId || "root"}::${name}`;
+  if (folderCache[cacheKey]) return folderCache[cacheKey];
+
+  // Search for existing folder under parent
+  const parentQuery = parentId ? ` and '${parentId}' in parents` : " and 'root' in parents";
+  const q = `name='${name}' and mimeType='application/vnd.google-apps.folder' and trashed=false${parentQuery}`;
+  const res  = await fetch(
+    `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
-  const data = await search.json();
-  if (data.files && data.files.length > 0) return data.files[0].id;
+  const data = await res.json();
+
+  if (data.files && data.files.length > 0) {
+    folderCache[cacheKey] = data.files[0].id;
+    return data.files[0].id;
+  }
 
   // Create folder
+  const body = { name, mimeType: "application/vnd.google-apps.folder" };
+  if (parentId) body.parents = [parentId];
   const create = await fetch("https://www.googleapis.com/drive/v3/files", {
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ name: FOLDER_NAME, mimeType: "application/vnd.google-apps.folder" }),
+    body: JSON.stringify(body),
   });
   const folder = await create.json();
+  folderCache[cacheKey] = folder.id;
   return folder.id;
 }
 
-// ── Upload file ───────────────────────────────────────────────────────────────
-export async function uploadToDrive(file, onProgress) {
+/**
+ * Get or create: Bale Bazaar / {country} / {brand}
+ * e.g. Bale Bazaar / Korea / MSM
+ */
+async function getBaleFolder(token, country, brand) {
+  const rootId    = await findOrCreateFolder(token, ROOT_FOLDER);
+  const countryId = await findOrCreateFolder(token, country, rootId);
+  const brandId   = await findOrCreateFolder(token, brand,   countryId);
+  return brandId;
+}
+
+// ── Upload ────────────────────────────────────────────────────────────────────
+export async function uploadToDrive(file, country, brand, onProgress) {
   const token    = await getDriveToken();
-  const folderId = await getOrCreateFolder(token);
+  const folderId = await getBaleFolder(token, country, brand);
 
   const metadata = {
-    name: `${Date.now()}_${file.name}`,
+    name:    `${Date.now()}_${file.name}`,
     parents: [folderId],
   };
 
@@ -87,28 +106,27 @@ export async function uploadToDrive(file, onProgress) {
 
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,mimeType,webViewLink,webContentLink,thumbnailLink");
+    xhr.open(
+      "POST",
+      "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,mimeType,webViewLink"
+    );
     xhr.setRequestHeader("Authorization", `Bearer ${token}`);
 
     xhr.upload.onprogress = (e) => {
-      if (e.lengthComputable && onProgress) {
-        onProgress(Math.round((e.loaded / e.total) * 100));
-      }
+      if (e.lengthComputable && onProgress) onProgress(Math.round((e.loaded / e.total) * 100));
     };
 
     xhr.onload = async () => {
       if (xhr.status === 200) {
-        const fileData = JSON.parse(xhr.responseText);
-        // Make file publicly readable so anyone with link can view
-        await makePublic(token, fileData.id);
+        const f = JSON.parse(xhr.responseText);
+        await makePublic(token, f.id);
         resolve({
-          id:            fileData.id,
-          name:          fileData.name,
-          mimeType:      fileData.mimeType,
-          webViewLink:   fileData.webViewLink,
-          // Direct embed URLs
-          embedUrl:      getEmbedUrl(fileData.id, fileData.mimeType),
-          thumbnailUrl:  `https://drive.google.com/thumbnail?id=${fileData.id}&sz=w400`,
+          id:           f.id,
+          name:         f.name,
+          mimeType:     f.mimeType,
+          webViewLink:  f.webViewLink,
+          embedUrl:     getEmbedUrl(f.id, f.mimeType),
+          thumbnailUrl: `https://drive.google.com/thumbnail?id=${f.id}&sz=w400`,
         });
       } else {
         reject(new Error("Upload failed: " + xhr.responseText));
@@ -134,7 +152,7 @@ function getEmbedUrl(id, mimeType) {
   return `https://drive.google.com/thumbnail?id=${id}&sz=w800`;
 }
 
-// ── Delete file ───────────────────────────────────────────────────────────────
+// ── Delete ────────────────────────────────────────────────────────────────────
 export async function deleteFromDrive(fileId) {
   const token = await getDriveToken();
   await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {

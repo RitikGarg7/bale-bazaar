@@ -417,7 +417,7 @@ function BaleForm({ item, onDone, onBack }) {
 
         {/* Photos / Videos */}
         <Label>Photos / Videos <span style={{ color: C.inkLight, fontWeight: 400 }}>(optional)</span></Label>
-        <MediaGallery baleId={item?.id} media={media} onChange={setMedia} />
+        <MediaGallery baleId={item?.id} media={media} onChange={setMedia} country={country} brand={brandInput.trim().toUpperCase() || "Unknown"} />
 
         <div style={{ height: 20 }} />
 
