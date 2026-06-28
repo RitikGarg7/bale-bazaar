@@ -41,14 +41,18 @@ export default function Home({ nav }) {
               Bale Bazaar
             </span>
           </div>
-          {session?.photoURL && (
-            <img
-              src={session.photoURL}
-              alt="avatar"
-              onClick={() => nav("settings")}
-              style={{ width: 34, height: 34, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.35)", cursor: "pointer" }}
-            />
-          )}
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            {session?.photoURL && (
+              <img src={session.photoURL} alt="avatar"
+                style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.35)" }} />
+            )}
+            <button onClick={logout} style={{
+              background: "rgba(255,255,255,0.12)", color: "white",
+              border: "1px solid rgba(255,255,255,0.2)",
+              borderRadius: 8, padding: "5px 12px", fontSize: 12,
+              fontWeight: 600, cursor: "pointer",
+            }}>Logout</button>
+          </div>
         </div>
         <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 12, marginBottom: 2 }}>Jai Shri Ram 🙏</p>
         <h2 style={{ color: C.white, fontSize: 20, fontFamily: "'Baloo 2'", fontWeight: 700, margin: 0 }}>

@@ -6,6 +6,7 @@ import Login     from "./screens/Login";
 import Home      from "./screens/Home";
 import Inventory from "./screens/Inventory";
 import Parties from "./screens/Parties";
+import Broadcast from "./screens/Broadcast";
 import { Settings } from "./screens/Placeholders";
 
 function Router() {
@@ -64,6 +65,7 @@ function Router() {
     home:      <Home      nav={nav} />,
     inventory: <Inventory nav={nav} />,
     parties:   <Parties   nav={nav} />,
+    broadcast: <Broadcast nav={nav} />,
     settings:  <Settings  nav={nav} onLogout={handleLogout} />,
   };
 
