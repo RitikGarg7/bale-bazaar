@@ -42,7 +42,7 @@ export default function Reports({ nav }) {
   const cards = [
     { id: "pl",          icon: "📊", label: "Stock P&L",          desc: "Har lot ka profit/loss" },
     { id: "cashbook",    icon: "💵", label: "Cash & Bank Book",    desc: "Daily cash aur bank transactions" },
-    { id: "outstanding", icon: "📋", label: "Party Outstandings",  desc: "Kaun kitna dega" },
+    { id: "outstanding", icon: "📋", label: "Party Ledger",         desc: "Kaun kitna dega" },
     { id: "suppliers",   icon: "🏭", label: "Supplier Ledger",    desc: "Suppliers ka hisaab" },
     { id: "sales",       icon: "📊", label: "Sales Ledger",       desc: "Saari sales ek jagah" },
     { id: "purchases",   icon: "📦", label: "Purchase Ledger",    desc: "Saare purchases ek jagah" },
