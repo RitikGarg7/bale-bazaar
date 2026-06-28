@@ -199,7 +199,7 @@ export function BottomNav({ active, nav }) {
     ["home",      "🏠",  "Home"],
     ["inventory", "📦",  "Stock"],
     ["parties",   "🤝",  "Parties"],
-    ["broadcast", "📣",  "Broadcast"],
+    ["settings",  "⚙️",  "Settings"],
   ];
   return (
     <div style={{

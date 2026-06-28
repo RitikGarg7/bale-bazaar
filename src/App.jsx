@@ -5,8 +5,7 @@ import { AppProvider, useApp } from "./context/AppContext";
 import Login     from "./screens/Login";
 import Home      from "./screens/Home";
 import Inventory from "./screens/Inventory";
-import Parties from "./screens/Parties";
-import Broadcast from "./screens/Broadcast";
+import Parties   from "./screens/Parties";
 import { Settings } from "./screens/Placeholders";
 
 function Router() {
@@ -16,10 +15,7 @@ function Router() {
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
-      if (!user && screen !== "login") {
-        setScreen("login");
-        setHist([]);
-      }
+      if (!user && screen !== "login") { setScreen("login"); setHist([]); }
     });
     return () => unsub();
   }, [screen]);
@@ -65,7 +61,6 @@ function Router() {
     home:      <Home      nav={nav} />,
     inventory: <Inventory nav={nav} />,
     parties:   <Parties   nav={nav} />,
-    broadcast: <Broadcast nav={nav} />,
     settings:  <Settings  nav={nav} onLogout={handleLogout} />,
   };
 

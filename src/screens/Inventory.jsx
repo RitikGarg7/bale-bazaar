@@ -3,6 +3,7 @@ import { useApp } from "../context/AppContext";
 import { Shell, TopBar, BottomNav, Card, FAB, Spinner, EmptyState, C, Tag } from "../components/ui";
 import MediaGallery from "../components/MediaGallery";
 import SaleForm from "./SaleForm";
+import BroadcastSheet from "../components/BroadcastSheet";
 
 const COUNTRIES  = ["All", "Korea", "China", "USA", "UK", "Canada", "Australia", "Other"];
 const CATEGORIES = ["Mix", "Shirts", "T-Shirts", "Jeans", "Trousers", "Jackets", "Kids", "Ladies", "Sweaters", "Shoes"];
@@ -33,7 +34,7 @@ function Label({ children }) {
 }
 
 // ── Bale Card ─────────────────────────────────────────────────────────────────
-function BaleCard({ bale, onTap, onSell }) {
+function BaleCard({ bale, onTap, onSell, onBroadcast }) {
   const soldBales   = bale.sold_bales || 0;
   const remaining   = (bale.num_bales || 0) - soldBales;
   const photoCount  = bale.media?.length || 0;
@@ -94,6 +95,15 @@ function BaleCard({ bale, onTap, onSell }) {
               💸 Sell
             </button>
           )}
+          <button
+            onClick={e => { e.stopPropagation(); onBroadcast(); }}
+            style={{
+              background: C.amber, color: C.white, border: "none",
+              borderRadius: 8, padding: "5px 10px",
+              fontSize: 11, fontWeight: 700, cursor: "pointer",
+            }}>
+            📣
+          </button>
         </div>
       </div>
     </Card>
@@ -106,7 +116,8 @@ export default function Inventory({ nav }) {
   const [filter,   setFilter]   = useState("All");
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState(null);
-  const [saleItem, setSaleItem] = useState(null);
+  const [saleItem,       setSaleItem]       = useState(null);
+  const [broadcastItem, setBroadcastItem] = useState(null);
 
   useEffect(() => { loadAll(); }, [loadAll]);
 
@@ -184,6 +195,7 @@ export default function Inventory({ nav }) {
                     bale={bale}
                     onTap={() => setEditItem(bale)}
                     onSell={() => setSaleItem(bale)}
+                    onBroadcast={() => setBroadcastItem(bale)}
                   />
                 ))}
               </div>
@@ -194,6 +206,7 @@ export default function Inventory({ nav }) {
 
       <FAB onClick={() => setShowForm(true)} color={C.navy} />
       <BottomNav active="inventory" nav={nav} />
+      {broadcastItem && <BroadcastSheet bale={broadcastItem} onClose={() => setBroadcastItem(null)} />}
     </Shell>
   );
 }
