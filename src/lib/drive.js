@@ -10,21 +10,45 @@ const FOLDER_NAME  = "Bale Bazaar";
 let accessToken = null;
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
+const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "498474421999-6eoj03p66na5homksk23gmqbggt4emi5.apps.googleusercontent.com";
+
+// Store token in sessionStorage so it survives page navigation
+function getSavedToken() {
+  try { return sessionStorage.getItem("drive_token"); } catch { return null; }
+}
+function saveToken(t) {
+  try { sessionStorage.setItem("drive_token", t); } catch {}
+}
+
 export async function getDriveToken() {
+  // 1. In-memory cache
   if (accessToken) return accessToken;
 
+  // 2. SessionStorage (survives component remounts)
+  const saved = getSavedToken();
+  if (saved) { accessToken = saved; return accessToken; }
+
+  // 3. Try popup first; fall back to a clear user-triggered request
   return new Promise((resolve, reject) => {
     const client = window.google.accounts.oauth2.initTokenClient({
-      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || "498474421999-6eoj03p66na5homksk23gmqbggt4emi5.apps.googleusercontent.com",
+      client_id: CLIENT_ID,
       scope: DRIVE_SCOPE,
       callback: (response) => {
-        if (response.error) return reject(response.error);
+        if (response.error) return reject(new Error(response.error));
         accessToken = response.access_token;
+        saveToken(accessToken);
         resolve(accessToken);
       },
+      error_callback: (err) => reject(new Error(err.message || "Auth failed")),
     });
+    // prompt: "" skips consent if already granted; use "consent" to force
     client.requestAccessToken({ prompt: "" });
   });
+}
+
+export function clearDriveToken() {
+  accessToken = null;
+  try { sessionStorage.removeItem("drive_token"); } catch {}
 }
 
 // ── Ensure "Bale Bazaar" folder exists ───────────────────────────────────────
