@@ -16,7 +16,7 @@ import { Shell, TopBar, BottomNav, C, Spinner } from "../components/ui";
 import { auth } from "../lib/firebase";
 import {
   getFirestore, collection, getDocs, addDoc,
-  doc, setDoc, getDoc, serverTimestamp, updateDoc, increment
+  doc, setDoc, getDoc, deleteDoc, serverTimestamp, updateDoc, increment
 } from "firebase/firestore";
 
 const VOUCHER_TYPES = [
@@ -60,6 +60,15 @@ export default function Rokar({ nav }) {
       .sort((a, b) => (b.ts || 0) - (a.ts || 0));
     setEntries(all);
     setLoading(false);
+  };
+
+  const handleDelete = async (entry) => {
+    if (!window.confirm("Yeh entry delete karein? Linked cash book entries bhi hatenge.")) return;
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    const _db = getFirestore();
+    await deleteDoc(doc(_db, "users", uid, "rokar", entry.id));
+    loadEntries();
   };
 
   // Totals for the day
@@ -155,8 +164,17 @@ export default function Rokar({ nav }) {
                   </div>
                 </div>
 
-                <div style={{ fontFamily: "'Baloo 2'", fontWeight: 800, fontSize: 15, color: C.ink, flexShrink: 0 }}>
-                  {fmt(e.amount)}
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6, flexShrink: 0 }}>
+                  <div style={{ fontFamily: "'Baloo 2'", fontWeight: 800, fontSize: 15, color: C.ink }}>
+                    {fmt(e.amount)}
+                  </div>
+                  <button
+                    onClick={() => handleDelete(e)}
+                    style={{
+                      background: C.redLight, color: C.red, border: "none",
+                      borderRadius: 6, padding: "3px 8px", fontSize: 11,
+                      fontWeight: 700, cursor: "pointer",
+                    }}>🗑 Delete</button>
                 </div>
               </div>
             </div>
