@@ -50,7 +50,6 @@ function BaleCard({ bale, onTap }) {
           <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: bale.notes ? 6 : 0 }}>
             <Stat label="Bales"     value={bale.num_bales} />
             <Stat label="Wt/Bale"  value={`${bale.weight_kg} kg`} />
-            <Stat label="Total Wt" value={`${Number(bale.weight_kg) * Number(bale.num_bales || 1)} kg`} />
             {bale.price_per_kg && <Stat label="₹/kg" value={`₹${bale.price_per_kg}`} />}
           </div>
           {bale.date && (
