@@ -1,3 +1,4 @@
+import PnL from "./PnL";
 import DayClosing from "./DayClosing";
 import SalesLedger from "./SalesLedger";
 import PurchaseLedger from "./PurchaseLedger";
@@ -32,7 +33,7 @@ function SectionTitle({ children }) {
 export default function Reports({ nav }) {
   const [active, setActive] = useState("home"); // home | pl | cashbook | outstanding
 
-  if (active === "pl")          return <StockPL      onBack={() => setActive("home")} nav={nav} />;
+  if (active === "pl")          return <PnL          onBack={() => setActive("home")} />;
   if (active === "cashbook")    return <CashBookScreen onBack={() => setActive("home")} nav={nav} />;
   if (active === "outstanding") return <Outstanding  onBack={() => setActive("home")} nav={nav} />;
   if (active === "suppliers")   return <SupplierLedger onBack={() => setActive("home")} nav={nav} />;
@@ -43,7 +44,7 @@ export default function Reports({ nav }) {
 
   const cards = [
     { id: "dayclosing",  icon: "🔒", label: "Day Closing",        desc: "Physical cash match karein aur din band karein" },
-    { id: "pl",          icon: "📊", label: "Stock P&L",          desc: "Har lot ka profit/loss" },
+    { id: "pl",          icon: "📊", label: "P&L Statement",       desc: "Daily / weekly / monthly profit" },
     { id: "cashbook",    icon: "💵", label: "Cash & Bank Book",    desc: "Daily cash aur bank transactions" },
     { id: "outstanding", icon: "📋", label: "Party Ledger",         desc: "Kaun kitna dega" },
     { id: "suppliers",   icon: "🏭", label: "Supplier Ledger",    desc: "Suppliers ka hisaab" },
