@@ -1,3 +1,4 @@
+import DayClosing from "./DayClosing";
 import SalesLedger from "./SalesLedger";
 import PurchaseLedger from "./PurchaseLedger";
 import ReceiptLedger from "./ReceiptLedger";
@@ -38,8 +39,10 @@ export default function Reports({ nav }) {
   if (active === "sales")       return <SalesLedger    onBack={() => setActive("home")} />;
   if (active === "purchases")   return <PurchaseLedger onBack={() => setActive("home")} />;
   if (active === "receipts")    return <ReceiptLedger  onBack={() => setActive("home")} />;
+  if (active === "dayclosing")  return <DayClosing     onBack={() => setActive("home")} />;
 
   const cards = [
+    { id: "dayclosing",  icon: "🔒", label: "Day Closing",        desc: "Physical cash match karein aur din band karein" },
     { id: "pl",          icon: "📊", label: "Stock P&L",          desc: "Har lot ka profit/loss" },
     { id: "cashbook",    icon: "💵", label: "Cash & Bank Book",    desc: "Daily cash aur bank transactions" },
     { id: "outstanding", icon: "📋", label: "Party Ledger",         desc: "Kaun kitna dega" },
