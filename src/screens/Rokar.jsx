@@ -411,11 +411,19 @@ function VoucherForm({ type, date, onClose, onSaved }) {
           media: [],
         }, null);
 
-        // Supplier ledger (if credit)
-        if (creditAmt > 0 && supplierName) {
+        // Supplier ledger — always save purchase (cash or credit)
+        if (supplierName && purchaseAmt > 0) {
           await addDoc(collection(_db, "users", uid, "supplier_ledger"), {
-            supplier: supplierName, amount: creditAmt, date,
-            narration: brand.toUpperCase() + " " + category + " × " + numBales + " bales",
+            supplier: supplierName,
+            type: "purchase",
+            amount: purchaseAmt,
+            credit_amount: creditAmt,
+            paid_cash: paidCash,
+            paid_bank: paidBank,
+            pay_mode: payMode,
+            date,
+            narration: brand.toUpperCase() + " " + category + " × " + numBales + " bales @ ₹" + buyRate + "/kg",
+            voucher_no: voucherNo,
             updatedAt: serverTimestamp(),
           });
         }

@@ -29,15 +29,9 @@ export default function SupplierLedger({ onBack }) {
     const snap = await getDocs(collection(_db, "users", uid, "supplier_ledger"));
     const entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-    // Also pull from rokar purchase entries
-    const rokarSnap = await getDocs(collection(_db, "users", uid, "rokar"));
-    const purchases = rokarSnap.docs
-      .map(d => ({ id: "r_" + d.id, ...d.data() }))
-      .filter(e => e.type === "purchase" && e.supplier_name);
-
     // Group by supplier name
     const supplierMap = {};
-    [...entries, ...purchases].forEach(e => {
+    entries.forEach(e => {
       const name = e.supplier || e.supplier_name || "Unknown";
       if (!supplierMap[name]) supplierMap[name] = { name, entries: [], total_credit: 0, total_paid: 0 };
       supplierMap[name].entries.push(e);
@@ -112,16 +106,10 @@ function SupplierDetail({ supplier, onBack }) {
     const _db = getFirestore();
 
     const snap = await getDocs(collection(_db, "users", uid, "supplier_ledger"));
-    const ledger = snap.docs
+    const all = snap.docs
       .map(d => ({ id: d.id, ...d.data() }))
-      .filter(e => (e.supplier || e.supplier_name) === supplier.name);
-
-    const rokarSnap = await getDocs(collection(_db, "users", uid, "rokar"));
-    const rokar = rokarSnap.docs
-      .map(d => ({ id: "r_" + d.id, ...d.data() }))
-      .filter(e => e.type === "purchase" && e.supplier_name === supplier.name);
-
-    const all = [...ledger, ...rokar].sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+      .filter(e => (e.supplier || e.supplier_name) === supplier.name)
+      .sort((a, b) => (a.date || "").localeCompare(b.date || ""));
     setEntries(all);
     setLoading(false);
   };
